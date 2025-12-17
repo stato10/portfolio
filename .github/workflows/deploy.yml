@@ -6,6 +6,8 @@ on:
       - main
   workflow_dispatch:
 
+# This workflow builds and deploys the Vite React app to GitHub Pages
+
 permissions:
   contents: read
   pages: write
