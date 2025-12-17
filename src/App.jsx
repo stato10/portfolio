@@ -54,7 +54,7 @@ function RedirectHandler() {
 
 function App() {
   return (
-    <BrowserRouter basename="/portfolio-stato">
+    <BrowserRouter basename="/portfolio">
       <RedirectHandler />
       <div className="min-h-screen flex flex-col">
         <Navbar />

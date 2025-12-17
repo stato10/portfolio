@@ -93,14 +93,14 @@ This project is configured for automatic deployment to GitHub Pages.
    - The GitHub Actions workflow will automatically build and deploy your site
    - After pushing to `main`, go to **Actions** tab to see the deployment progress
    - Once complete, your site will be available at:
-     `https://[your-username].github.io/portfolio-stato/`
+     `https://[your-username].github.io/portfolio/`
 
 3. **Custom Domain (Optional):**
    - If you have a custom domain, add a `CNAME` file in the `public/` folder
    - Configure your domain's DNS settings as per GitHub Pages documentation
 
 ### Important Notes:
-- The site is configured with base path `/portfolio-stato/` in `vite.config.js`
+- The site is configured with base path `/portfolio/` in `vite.config.js`
 - If you change the repository name, update the `base` path in `vite.config.js` and `basename` in `src/App.jsx`
 - The deployment workflow runs automatically on every push to `main` branch
 
