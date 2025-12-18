@@ -46,31 +46,23 @@ function Hero() {
       {/* YouTube Video Background - Professional Implementation */}
       {youtubeEmbedUrl && (
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-          <div 
-            className="absolute inset-0 w-full h-full"
+          <iframe
+            src={youtubeEmbedUrl}
+            className="absolute top-1/2 left-1/2"
             style={{
-              paddingBottom: '56.25%', // 16:9 aspect ratio
-              height: '100%',
-              overflow: 'hidden',
+              width: '177.77777778vh', // Maintains 16:9 aspect ratio
+              height: '100vh',
+              minWidth: '100%',
+              minHeight: '56.25vw', // Ensures full video is visible
+              transform: 'translate(-50%, -50%)',
+              border: 'none',
+              pointerEvents: 'none',
             }}
-          >
-            <iframe
-              src={youtubeEmbedUrl}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-              style={{
-                width: '177.77777778vh', // 16:9 aspect ratio
-                height: '100vh',
-                minWidth: '100%',
-                minHeight: '56.25vw',
-                border: 'none',
-                pointerEvents: 'none',
-              }}
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              title="Hero Background Video"
-              frameBorder="0"
-            />
-          </div>
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            title="Hero Background Video"
+            frameBorder="0"
+          />
         </div>
       )}
       

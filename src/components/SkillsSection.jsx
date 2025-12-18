@@ -22,6 +22,9 @@ function SkillsSection() {
       'Git', 'GitHub', 'Docker', 'AWS', 'Linux', 
       'CI/CD', 'Jenkins', 'NPM', 'Webpack', 'Vite'
     ],
+    'Automation Tools': [
+      'Make', 'n8n', 'Zepair'
+    ],
     'Testing & Quality': [
       'Jest', 'Unit Testing', 'Integration Testing', 
       'Postman', 'API Testing', 'Debugging'

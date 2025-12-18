@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import emailjs from '@emailjs/browser'
 
 function ContactSection() {
@@ -12,11 +12,23 @@ function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null)
 
+  // Initialize EmailJS
+  useEffect(() => {
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+    if (publicKey) {
+      emailjs.init(publicKey)
+    }
+  }, [])
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     })
+    // Clear status message when user starts typing
+    if (submitStatus) {
+      setSubmitStatus(null)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -25,23 +37,46 @@ function ContactSection() {
     setSubmitStatus(null)
 
     try {
-      // Replace these with your EmailJS credentials
-      const serviceId = 'YOUR_SERVICE_ID'
-      const templateId = 'YOUR_TEMPLATE_ID'
-      const publicKey = 'YOUR_PUBLIC_KEY'
+      // Get EmailJS credentials from environment variables
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID
+      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
 
-      await emailjs.sendForm(
+      // Validate environment variables
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error('EmailJS configuration is missing. Please check your environment variables.')
+      }
+
+      // Send email using EmailJS
+      const result = await emailjs.sendForm(
         serviceId,
         templateId,
         formRef.current,
         publicKey
       )
 
-      setSubmitStatus({ type: 'success', message: 'Message sent successfully! I\'ll get back to you soon.' })
-      setFormData({ name: '', email: '', subject: '', message: '' })
+      if (result.text === 'OK') {
+        setSubmitStatus({ 
+          type: 'success', 
+          message: 'Message sent successfully! I\'ll get back to you soon.' 
+        })
+        // Reset form
+        setFormData({ name: '', email: '', subject: '', message: '' })
+        // Clear success message after 5 seconds
+        setTimeout(() => setSubmitStatus(null), 5000)
+      }
     } catch (error) {
       console.error('EmailJS error:', error)
-      setSubmitStatus({ type: 'error', message: 'Failed to send message. Please try again or email me directly.' })
+      let errorMessage = 'Failed to send message. Please try again or email me directly.'
+      
+      // Provide more specific error messages
+      if (error.text) {
+        errorMessage = `Error: ${error.text}`
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      setSubmitStatus({ type: 'error', message: errorMessage })
     } finally {
       setIsSubmitting(false)
     }
