@@ -213,7 +213,7 @@ function ContactSection() {
                   <div className="flex-1">
                     <h4 className="text-text-primary font-semibold mb-1 text-sm uppercase tracking-wider">Email</h4>
                     <a href="mailto:avrahamstato@example.com" className="text-text-muted hover:text-primary transition-colors text-sm">
-                      avrahamstato@example.com
+                      statto3@gmail.com
                     </a>
                   </div>
                 </div>

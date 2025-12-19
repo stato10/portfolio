@@ -50,8 +50,7 @@ function AboutSection() {
                     className="w-full h-full object-cover"
                     style={{
                       objectPosition: '50% 25%',
-                      imageRendering: 'high-quality',
-                      WebkitImageRendering: 'high-quality',
+                      imageRendering: 'smooth',
                     }}
                     loading="eager"
                   />
