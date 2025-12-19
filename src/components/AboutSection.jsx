@@ -45,7 +45,7 @@ function AboutSection() {
                 {/* Main image */}
                 <div className="relative aspect-[3/4] w-full min-h-[450px]">
                   <img
-                    src="https://res.cloudinary.com/dpz2lh8hu/image/upload/v1753432895/a77c4ee3-ec88-421d-ad2b-1cacfc6e612b_eowqiu.png"
+                    src="https://res.cloudinary.com/dpz2lh8hu/image/upload/v1766142442/ChatGPT_Image_Dec_19_2025_12_01_52_PM_g21l3c.png"
                     alt="Avraham - Full Stack Developer"
                     className="w-full h-full object-cover"
                     style={{
