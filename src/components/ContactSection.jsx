@@ -83,7 +83,7 @@ function ContactSection() {
   }
 
   return (
-    <section id="contact" className="section-padding bg-surface">
+    <section id="contact" className="section-padding bg-surface scroll-mt-24">
       <div className="container-custom max-w-4xl">
         <div className="text-center mb-12">
           <div className="inline-block mb-4">

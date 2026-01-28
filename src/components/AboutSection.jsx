@@ -1,6 +1,6 @@
 function AboutSection() {
   return (
-    <section id="about" className="section-padding bg-surface relative overflow-hidden">
+    <section id="about" className="section-padding bg-surface relative overflow-hidden scroll-mt-24">
       <div className="container-custom relative z-10">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center max-w-6xl mx-auto">
           {/* Content Section */}

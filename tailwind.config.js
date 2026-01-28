@@ -7,15 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        'bg-primary': '#0b0d10',
-        'surface': '#11161d',
-        'primary': '#00a4d8',
-        'accent': '#00e5ff',
-        'text-primary': '#f5f5f5',
-        'text-muted': '#a3b3c3',
+        'bg-primary': '#EEE9DA',
+        'surface': '#BDCDD6',
+        'primary': '#6096B4',
+        'accent': '#93BFCF',
+        'text-primary': '#2C3E50',
+        'text-muted': '#6096B4',
       },
       fontFamily: {
-        sans: ['Poppins', 'Arial', 'sans-serif'],
+        sans: ['Ledger', 'serif'],
+        display: ['"Rubik Mono One"', 'sans-serif'],
       },
     },
   },

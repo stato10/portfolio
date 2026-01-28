@@ -1,155 +1,126 @@
-import { useEffect, useState } from 'react'
-
-// YouTube Video URL - Replace with your YouTube video ID or full URL
-// Example: 'dQw4w9WgXcQ' or 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-const YOUTUBE_VIDEO_ID = '34Y_pnKt4TQ' // YouTube video ID
+import { motion } from 'framer-motion'
+import ReactPlayer from 'react-player'
 
 function Hero() {
-  const [isVisible, setIsVisible] = useState(false)
+    const scrollToProjects = () => {
+        const projectsSection = document.getElementById('portfolio')
+        if (projectsSection) {
+            const navbarHeight = 100 // Navbar height with top offset and padding
+            const elementPosition = projectsSection.getBoundingClientRect().top + window.pageYOffset
+            const offsetPosition = elementPosition - navbarHeight
 
-  const scrollToProjects = () => {
-    const projectsSection = document.getElementById('portfolio')
-    if (projectsSection) {
-      projectsSection.scrollIntoView({ behavior: 'smooth' })
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            })
+        }
     }
-  }
 
-  useEffect(() => {
-    setIsVisible(true)
-  }, [])
+    return (
+        <section
+            id="hero"
+            className="relative min-h-screen flex flex-col justify-center px-6 pt-32 md:pt-40 pb-12 overflow-hidden"
+        >
+            {/* Video Background */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-slate-900 z-0" />
+                {/* Video Container */}
+                <div className="absolute inset-0 z-10 select-none">
+                    <ReactPlayer
+                        url='https://www.youtube.com/watch?v=34Y_pnKt4TQ'
+                        playing
+                        loop
+                        muted
+                        controls={false}
+                        width="100%"
+                        height="100%"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full object-cover"
+                        style={{ transform: 'translate(-50%, -50%) scale(1.4)' }}
+                        config={{
+                            youtube: {
+                                playerVars: {
+                                    showinfo: 0,
+                                    modestbranding: 1,
+                                    controls: 0,
+                                    rel: 0,
+                                    iv_load_policy: 3,
+                                    disablekb: 1,
+                                    fs: 0,
+                                    playsinline: 1,
+                                    loop: 1,
+                                    origin: window.location.origin
+                                }
+                            }
+                        }}
+                    />
+                </div>
+            </div>
 
-  // Convert YouTube URL to video ID if full URL is provided
-  const getYouTubeVideoId = (urlOrId) => {
-    if (!urlOrId) return ''
-    
-    // If it's already just an ID, return it
-    if (!urlOrId.includes('youtube.com') && !urlOrId.includes('youtu.be')) {
-      return urlOrId
-    }
-    
-    // Extract video ID from various YouTube URL formats
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
-    const match = urlOrId.match(regExp)
-    return (match && match[2].length === 11) ? match[2] : ''
-  }
+            <div className="container-custom mx-auto z-10 relative">
+                <div className="max-w-[1200px]">
+                    {/* Subtitle */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="mb-8"
+                    >
+                        <span className="block text-sm md:text-base font-sans tracking-[0.2em] text-text-muted uppercase">
+                            Full Stack Developer
+                        </span>
+                    </motion.div>
 
-  const videoId = getYouTubeVideoId(YOUTUBE_VIDEO_ID)
-  const youtubeEmbedUrl = videoId 
-    ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1${typeof window !== 'undefined' ? `&origin=${window.location.origin}` : ''}`
-    : null
+                    {/* Main Heading */}
+                    <h1 className="flex flex-col font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold leading-[0.9] tracking-tighter text-primary mb-12">
+                        <motion.span
+                            initial={{ opacity: 0, y: 100 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                            className="block"
+                        >
+                            CREATIVE
+                        </motion.span>
+                        <motion.span
+                            initial={{ opacity: 0, y: 100 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                            className="block text-text-muted"
+                        >
+                            ENGINEER
+                        </motion.span>
+                    </h1>
 
-  return (
-    <section 
-      id="hero"
-      className="relative min-h-[70vh] flex items-center justify-center pt-16 overflow-hidden"
-    >
-      {/* YouTube Video Background - Professional Implementation */}
-      {youtubeEmbedUrl && (
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-          <iframe
-            src={youtubeEmbedUrl}
-            className="absolute top-1/2 left-1/2"
-            style={{
-              width: '177.77777778vh', // Maintains 16:9 aspect ratio
-              height: '100vh',
-              minWidth: '100%',
-              minHeight: '56.25vw', // Ensures full video is visible
-              transform: 'translate(-50%, -50%)',
-              border: 'none',
-              pointerEvents: 'none',
-            }}
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-            title="Hero Background Video"
-            frameBorder="0"
-          />
-        </div>
-      )}
-      
-      {/* Professional Gradient Overlay - Lighter for better video visibility */}
-      <div 
-        className="absolute inset-0 z-[1]"
-        style={{
-          background: 'linear-gradient(135deg, rgba(11, 13, 16, 0.75) 0%, rgba(11, 13, 16, 0.70) 50%, rgba(11, 13, 16, 0.80) 100%)',
-        }}
-      ></div>
-      
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 z-[1] overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
-      
-      {/* Professional Content */}
-      <div 
-        className={`relative z-10 text-center max-w-5xl px-4 sm:px-6 lg:px-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-        style={{
-          left: 'auto',
-          top: 'auto',
-        }}
-      >
-        {/* Subtitle */}
-        <div className="mb-6">
-          <span className="inline-block text-xs uppercase tracking-[0.3em] text-primary/80 font-medium mb-4 drop-shadow-lg">
-            Full Stack Developer
-          </span>
-        </div>
-        
-        {/* Main Heading with Professional Typography */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight">
-          <span className="block text-text-primary mb-2 drop-shadow-lg">
-            Creative
-          </span>
-          <span className="block text-primary drop-shadow-lg">
-            Software Engineer
-          </span>
-        </h1>
+                    <div className="flex flex-col md:flex-row gap-12 items-start justify-between">
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.8, delay: 0.8 }}
+                            className="max-w-md text-text-muted text-lg leading-relaxed font-sans"
+                        >
+                            Developing scalable, high-performance web applications with a focus on seamless user experiences and modern architecture.
+                        </motion.p>
 
-        <p className="text-text-muted text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-md" style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}>
-          Building scalable solutions with modern technologies. Transforming ideas into production-ready applications.
-        </p>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.8, delay: 1.0 }}
+                        >
+                            <button
+                                onClick={scrollToProjects}
+                                className="group flex items-center gap-4 text-primary font-display tracking-widest uppercase hover:text-accent transition-colors"
+                            >
+                                <span>Recent Work</span>
+                                <span className="block h-[1px] w-12 bg-current transition-all duration-300 group-hover:w-20" />
+                            </button>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <a 
-            href="#portfolio" 
-            onClick={(e) => {
-              e.preventDefault()
-              scrollToProjects()
-            }}
-            className="group relative px-8 py-4 bg-primary text-bg-primary rounded-lg font-medium text-sm uppercase tracking-wider transition-all duration-300 hover:bg-accent hover:scale-105 hover:shadow-xl hover:shadow-primary/50 overflow-hidden"
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              View My Work
-              <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-            <span className="absolute inset-0 bg-gradient-to-r from-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-          </a>
-          <a 
-            href="#contact" 
-            onClick={(e) => {
-              e.preventDefault()
-              const element = document.getElementById('contact')
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' })
-              }
-            }}
-            className="group px-8 py-4 border-2 border-primary/50 text-primary rounded-lg font-medium text-sm uppercase tracking-wider transition-all duration-300 hover:border-primary hover:bg-primary/10"
-          >
-            <span className="flex items-center gap-2">
-              Get In Touch
-              <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </a>
-        </div>
-      </div>
-
-    </section>
-  )
+            {/* Background Texture Overlay */}
+            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+        </section>
+    )
 }
 
 export default Hero
