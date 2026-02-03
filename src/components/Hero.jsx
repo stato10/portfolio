@@ -27,7 +27,7 @@ function Hero() {
                 {/* Video Container */}
                 <div className="absolute inset-0 z-10 select-none">
                     <ReactPlayer
-                        url='https://www.youtube.com/watch?v=34Y_pnKt4TQ'
+                        url='https://www.youtube.com/watch?v=w0a80L6j47E'
                         playing
                         loop
                         muted
@@ -48,7 +48,6 @@ function Hero() {
                                     fs: 0,
                                     playsinline: 1,
                                     loop: 1,
-                                    origin: window.location.origin
                                 }
                             }
                         }}
