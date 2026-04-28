@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { useScrubbedBentoGallery } from '../hooks/useScrubbedBentoGallery'
-import project1 from '../assets/project1.png'
+import perfectDressHero from '../assets/perfect-dress-hero.png'
 
 const projects = [
   {
@@ -71,7 +71,7 @@ const projects = [
     category: 'E-Commerce',
     year: '2024',
     description: 'An elegant e-commerce boutique specializing in formal wear. The site features a sophisticated filtering system, high-resolution galleries, and a seamless checkout process designed to enhance the shopping experience.',
-    img: project1,
+    img: perfectDressHero,
     link: 'https://stato10.github.io/PerfectDress/',
     tags: ['React', 'TailwindCSS', 'JavaScript', 'HTML', 'CSS'],
   },
