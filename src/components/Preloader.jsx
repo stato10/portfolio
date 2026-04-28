@@ -1,39 +1,66 @@
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef, useState } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 
 export default function Preloader() {
-    const [isLoading, setIsLoading] = useState(true)
+    const root = useRef(null)
+    const [visible, setVisible] = useState(true)
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsLoading(false)
-        }, 2500) // Duration of the "Paint is drying" effect
+    useGSAP(
+        () => {
+            const el = root.current
+            if (!el) return
 
-        return () => clearTimeout(timer)
-    }, [])
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            if (reduce) {
+                setVisible(false)
+                return
+            }
+
+            const lines = el.querySelectorAll('.preloader-line')
+            const tl = gsap.timeline({
+                onComplete: () => setVisible(false),
+            })
+
+            tl.from(lines, {
+                yPercent: 100,
+                opacity: 0,
+                duration: 0.95,
+                stagger: 0.14,
+                ease: 'power4.out',
+            })
+                .to(
+                    el,
+                    {
+                        autoAlpha: 0,
+                        duration: 0.55,
+                        ease: 'power3.inOut',
+                    },
+                    '+=0.45'
+                )
+        },
+        { scope: root }
+    )
+
+    if (!visible) return null
 
     return (
-        <AnimatePresence>
-            {isLoading && (
-                <motion.div
-                    initial={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-                    className="fixed inset-0 z-[100] grid place-items-center bg-bg-primary"
-                >
-                    <div className="overflow-hidden">
-                        <motion.p
-                            initial={{ y: 100 }}
-                            animate={{ y: 0 }}
-                            transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
-                            className="font-display text-2xl md:text-4xl text-primary tracking-widest text-center"
-                        >
-                            THE PAINT<br />
-                            <span className="text-text-muted">IS DRYING...</span>
-                        </motion.p>
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+        <div
+            ref={root}
+            className="fixed inset-0 z-[200] grid place-items-center bg-bg-primary"
+        >
+            <div className="overflow-hidden text-center px-6">
+                <div className="overflow-hidden">
+                    <p className="preloader-line font-display text-2xl md:text-4xl text-primary tracking-widest">
+                        THE PAINT
+                    </p>
+                </div>
+                <div className="overflow-hidden mt-2">
+                    <p className="preloader-line font-display text-xl md:text-3xl text-text-muted tracking-widest">
+                        IS DRYING...
+                    </p>
+                </div>
+            </div>
+        </div>
     )
 }

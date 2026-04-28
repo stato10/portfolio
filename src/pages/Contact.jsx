@@ -30,7 +30,7 @@ function Contact() {
           initial="initial"
           whileInView="whileInView"
           viewport={{ once: true }}
-          className="bg-surface/50 backdrop-blur-xl border border-primary/20 rounded-[3rem] p-8 md:p-16 shadow-[0_0_80px_-20px_rgba(96,150,180,0.15)] text-center relative overflow-hidden"
+          className="bg-surface/80 backdrop-blur-xl border border-white/[0.1] rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-16 shadow-hub text-center relative overflow-hidden"
         >
           {/* Top Decorative Line */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />

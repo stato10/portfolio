@@ -1,8 +1,10 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 function SkillsSection() {
-  const [hoveredSkill, setHoveredSkill] = useState(null)
+  const root = useRef(null)
 
   const skillCategories = [
     {
@@ -16,8 +18,8 @@ function SkillsSection() {
       skills: [
         'React', 'TailwindCSS', 'TypeScript', 'HTML5/CSS3',
         'Next.js', 'Redux', 'UI/UX Design', 'Material-UI',
-        'Styled Components', 'Responsive Design'
-      ]
+        'Styled Components', 'Responsive Design',
+      ],
     },
     {
       title: 'Backend & Databases',
@@ -30,8 +32,8 @@ function SkillsSection() {
       skills: [
         'Node.js', 'Express', 'MongoDB', 'SQL',
         'PostgreSQL', 'REST APIs', 'GraphQL', 'Redis',
-        'Java', 'Spring Boot', 'Mongoose'
-      ]
+        'Java', 'Spring Boot', 'Mongoose',
+      ],
     },
     {
       title: 'AI & Cloud',
@@ -44,8 +46,8 @@ function SkillsSection() {
       skills: [
         'OpenAI API', 'Google Cloud (GCP)', 'AWS', 'GitHub Actions',
         'Docker', 'Kubernetes', 'CI/CD', 'Linux',
-        'Vite', 'Webpack'
-      ]
+        'Vite', 'Webpack',
+      ],
     },
     {
       title: 'Automation',
@@ -57,52 +59,98 @@ function SkillsSection() {
       ),
       skills: [
         'Python', 'PowerShell', 'Bash', 'Make.com',
-        'n8n', 'Zepair', 'Selenium', 'Scripting'
-      ]
+        'n8n', 'Zepair', 'Selenium', 'Scripting',
+      ],
     },
   ]
 
   const otherSkills = [
     'Git', 'Jest', 'Postman', 'Agile/Scrum', 'Unit Testing',
-    'Code Review', 'Problem Solving', 'Team Collaboration'
+    'Code Review', 'Problem Solving', 'Team Collaboration',
   ]
 
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const head = root.current?.querySelector('.skills-header')
+      const cards = root.current?.querySelectorAll('[data-skill-card]')
+      const footer = root.current?.querySelector('.skills-footer')
+
+      if (reduce) return
+
+      if (head) {
+        gsap.from(head.children, {
+          opacity: 0,
+          y: 36,
+          duration: 0.85,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: head,
+            start: 'top 85%',
+            once: true,
+          },
+        })
+      }
+
+      if (cards?.length) {
+        gsap.set(cards, { opacity: 0, y: 40 })
+        ScrollTrigger.batch(cards, {
+          start: 'top 88%',
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.85,
+              stagger: 0.1,
+              ease: 'power3.out',
+            })
+          },
+        })
+      }
+
+      if (footer) {
+        gsap.from(footer, {
+          opacity: 0,
+          y: 24,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: footer,
+            start: 'top 90%',
+            once: true,
+          },
+        })
+      }
+    },
+    { scope: root }
+  )
+
   return (
-    <section id="skills" className="py-24 bg-bg-primary relative overflow-hidden">
-      {/* Decorative Elements */}
+    <section id="skills" ref={root} className="py-24 bg-bg-primary relative overflow-hidden">
       <div className="absolute top-20 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-20 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
 
       <div className="container-custom mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-4xl md:text-6xl font-display text-primary mb-6">
-              TECHNICAL<br />EXPERTISE
-            </h2>
-            <p className="text-text-muted text-lg max-w-2xl mx-auto font-light">
-              A curated technology stack designed for building scalable, intelligent, and user-centric applications.
-            </p>
-          </motion.div>
+        <div className="skills-header text-center mb-20">
+          <h2 className="text-4xl md:text-6xl font-display text-primary mb-6">
+            TECHNICAL
+            <br />
+            EXPERTISE
+          </h2>
+          <p className="text-text-muted text-lg max-w-2xl mx-auto font-light">
+            A curated technology stack for scalable, intelligent, and user-centric applications—revealed as you scroll.
+          </p>
         </div>
 
-        {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-16">
           {skillCategories.map((category, idx) => (
-            <motion.div
+            <div
               key={idx}
-              className="group bg-bg-secondary p-8 rounded-2xl border border-primary/10 hover:border-primary/30 transition-all duration-300 relative overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              data-skill-card
+              className="group bg-surface/90 p-8 rounded-2xl border border-white/[0.08] hover:border-primary/35 transition-all duration-300 relative overflow-hidden shadow-hub"
             >
-              {/* Hover Gradient */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
               <div className="relative z-10">
@@ -114,9 +162,7 @@ function SkillsSection() {
                     <h3 className="text-xl font-display text-primary text-opacity-90 group-hover:text-opacity-100 uppercase tracking-widest">
                       {category.title}
                     </h3>
-                    <p className="text-xs text-text-muted font-sans uppercase tracking-wider mt-1">
-                      {category.description}
-                    </p>
+                    <p className="text-xs text-text-muted font-sans uppercase tracking-wider mt-1">{category.description}</p>
                   </div>
                 </div>
 
@@ -124,34 +170,30 @@ function SkillsSection() {
                   {category.skills.map((skill, sIdx) => (
                     <span
                       key={sIdx}
-                      className="px-4 py-2 rounded-lg bg-bg-primary text-text-primary/90 text-base font-medium font-sans border border-primary/10 hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all duration-300 cursor-default shadow-sm"
+                      className="px-4 py-2 rounded-lg bg-bg-primary/90 text-text-primary/90 text-base font-medium font-sans border border-white/[0.08] hover:border-primary/40 hover:text-primary hover:bg-primary/[0.06] transition-all duration-300 cursor-default"
                     >
                       {skill}
                     </span>
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        {/* Other Skills Marquee / List */}
-        <motion.div
-          className="text-center bg-bg-secondary/50 py-8 rounded-2xl border border-primary/5 max-w-4xl mx-auto"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
+        <div className="skills-footer text-center bg-surface/80 py-8 rounded-2xl border border-white/[0.08] max-w-4xl mx-auto shadow-hub">
           <h4 className="text-sm font-sans text-primary uppercase tracking-widest mb-4 opacity-70">Development Tools & Methodologies</h4>
           <div className="flex flex-wrap justify-center gap-6 px-4">
             {otherSkills.map((skill, index) => (
-              <span key={index} className="px-4 py-2 rounded-lg bg-bg-primary text-text-primary/80 border border-primary/10 hover:border-primary/30 hover:text-primary hover:bg-primary/5 transition-colors duration-300 text-sm font-medium shadow-sm">
+              <span
+                key={index}
+                className="px-4 py-2 rounded-lg bg-bg-primary/90 text-text-primary/80 border border-white/[0.08] hover:border-primary/35 hover:text-primary hover:bg-primary/[0.06] transition-colors duration-300 text-sm font-medium"
+              >
                 {skill}
               </span>
             ))}
           </div>
-        </motion.div>
-
+        </div>
       </div>
     </section>
   )

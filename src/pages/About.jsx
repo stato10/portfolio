@@ -79,7 +79,7 @@ function About() {
               variants={floatAnimation}
               initial="initial"
               animate="animate"
-              className="relative z-10 rounded-[3rem] overflow-hidden bg-surface/50 backdrop-blur-md border border-primary/20 shadow-[0_0_50px_-10px_rgba(96,150,180,0.15)]"
+              className="relative z-10 rounded-[3rem] overflow-hidden bg-surface/80 backdrop-blur-md border border-white/[0.1] shadow-hub"
             >
               <img
                 src={aboutImg}

@@ -1,3 +1,8 @@
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 const features = [
   {
     title: 'Enterprise-Grade Solutions',
@@ -38,38 +43,79 @@ const features = [
 ]
 
 function Features() {
+  const root = useRef(null)
+
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const header = root.current?.querySelector('.features-header')
+      const cards = root.current?.querySelectorAll('[data-feature-card]')
+      if (!header || !cards?.length) return
+
+      if (reduce) return
+
+      gsap.from(header.children, {
+        opacity: 0,
+        y: 36,
+        duration: 0.85,
+        stagger: 0.1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: header,
+          start: 'top 86%',
+          once: true,
+        },
+      })
+
+      gsap.set(cards, { opacity: 0, y: 48 })
+      ScrollTrigger.batch(cards, {
+        start: 'top 88%',
+        once: true,
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            stagger: 0.11,
+            ease: 'power3.out',
+          })
+        },
+      })
+    },
+    { scope: root }
+  )
+
   return (
-    <section className="section-padding bg-bg-primary relative overflow-hidden">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-[0.02]">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent rounded-full blur-3xl"></div>
+    <section ref={root} className="section-padding relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.07] pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/40 rounded-full blur-3xl" />
       </div>
-      
+
       <div className="container-custom relative z-10">
-        <div className="text-center mb-16">
+        <div className="features-header text-center mb-16">
           <div className="inline-block mb-4">
-            <span className="text-xs uppercase tracking-[0.2em] text-primary/60 font-medium">Expertise</span>
+            <span className="text-xs uppercase tracking-[0.2em] text-primary/70 font-medium font-sans">Expertise</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">
             <span className="text-text-primary">What I Bring</span>
             <span className="block text-primary mt-2">To The Table</span>
           </h2>
-          <p className="text-text-muted text-sm max-w-2xl mx-auto leading-relaxed">
-            Professional software development services with a focus on quality, performance, and scalability
+          <p className="text-text-muted text-sm max-w-2xl mx-auto leading-relaxed font-sans">
+            Professional software development with a focus on quality, performance, and scalability—animated with care, built for production.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative bg-surface/50 backdrop-blur-sm rounded-xl p-8 border border-surface hover:border-primary/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10"
+              data-feature-card
+              className="group relative bg-surface/90 backdrop-blur-md rounded-2xl p-8 border border-white/[0.08] hover:border-primary/40 transition-all duration-500 shadow-hub hover:shadow-hub-glow"
             >
-              {/* Gradient border effect on hover */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:via-primary/10 group-hover:to-primary/5 transition-all duration-500 opacity-0 group-hover:opacity-100 -z-10"></div>
-              
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/0 via-transparent to-primary/0 group-hover:from-primary/[0.07] group-hover:to-primary/[0.03] transition-all duration-500 pointer-events-none" />
+
               <div className="mb-6 flex items-center justify-center">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center text-primary transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <div className="w-14 h-14 rounded-xl bg-primary/15 group-hover:bg-primary/25 flex items-center justify-center text-primary transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ring-1 ring-primary/20">
                   {feature.icon}
                 </div>
               </div>

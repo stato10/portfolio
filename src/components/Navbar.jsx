@@ -64,19 +64,19 @@ function Navbar() {
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
     >
       <motion.nav
-        className={`pointer-events-auto relative flex items-center justify-between px-4 md:px-5 py-2 md:py-2.5 rounded-full ${
+        className={`pointer-events-auto relative flex items-center justify-between px-4 md:px-5 py-2 md:py-2.5 rounded-full border border-transparent ${
           isOpen ? 'w-[90%] md:w-auto rounded-2xl flex-col md:flex-row md:rounded-full' : 'w-auto'
         }`}
         animate={{
           backgroundColor: scrolled || isOpen 
-            ? `rgba(238, 233, 218, ${Math.min(bgOpacity + 0.3, 0.95)})` 
-            : 'rgba(238, 233, 218, 0)',
+            ? `rgba(10, 10, 10, ${Math.min(bgOpacity + 0.55, 0.9)})` 
+            : 'rgba(10, 10, 10, 0)',
           borderColor: scrolled || isOpen
-            ? `rgba(96, 150, 180, ${borderOpacity + 0.2})`
-            : 'rgba(96, 150, 180, 0)',
-          backdropFilter: scrolled || isOpen ? 'blur(12px)' : 'blur(0px)',
+            ? `rgba(10, 228, 72, ${borderOpacity + 0.2})`
+            : 'rgba(10, 228, 72, 0)',
+          backdropFilter: scrolled || isOpen ? 'blur(16px)' : 'blur(0px)',
           boxShadow: scrolled || isOpen 
-            ? `0 10px 40px rgba(96, 150, 180, ${bgOpacity * 0.3})` 
+            ? `0 12px 48px rgba(0, 0, 0, ${0.45 + bgOpacity * 0.35})` 
             : '0 0 0 rgba(0, 0, 0, 0)',
         }}
         transition={{ duration: 0.3, ease: 'easeOut' }}

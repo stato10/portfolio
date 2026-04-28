@@ -1,5 +1,7 @@
 import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
+import { useScrubbedBentoGallery } from '../hooks/useScrubbedBentoGallery'
 import project1 from '../assets/project1.png'
 
 const projects = [
@@ -76,124 +78,149 @@ const projects = [
 ]
 
 function Projects() {
+  const sectionRef = useRef(null)
+  const headerRef = useRef(null)
+  const { wrapRef, gridRef } = useScrubbedBentoGallery(sectionRef)
+
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const el = headerRef.current
+      if (!el || reduce) return
+
+      gsap.from(el.children, {
+        opacity: 0,
+        y: 48,
+        duration: 0.9,
+        stagger: 0.12,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 85%',
+          once: true,
+        },
+      })
+    },
+    { scope: sectionRef }
+  )
+
   return (
-    <section id="portfolio" className="bg-bg-primary py-32 relative z-10 scroll-mt-24">
+    <section ref={sectionRef} id="portfolio" className="relative z-10 scroll-mt-24 py-32">
       <div className="container-custom mx-auto px-4 md:px-8">
-        <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between border-b border-primary/30 pb-8 gap-6">
+        <div
+          ref={headerRef}
+          className="mb-16 flex flex-col gap-6 border-b border-white/10 pb-8 md:mb-12 md:flex-row md:items-end md:justify-between"
+        >
           <div>
-            <h2 className="text-4xl md:text-7xl font-display text-primary mb-2">
-              SELECTED WORKS
-            </h2>
-            <p className="text-text-muted max-w-lg">
+            <h2 className="mb-2 font-display text-4xl text-primary md:text-7xl">SELECTED WORKS</h2>
+            <p className="max-w-lg text-text-muted">
               A collection of projects exploring the intersection of design, artificial intelligence, and user experience.
             </p>
           </div>
-          <span className="hidden md:block text-text-muted font-sans text-sm tracking-widest uppercase">
+          <span className="hidden font-sans text-sm uppercase tracking-widest text-text-muted md:block">
             (2024 — 2025)
           </span>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-32">
-          {projects.map((project, index) => (
-            <ProjectCard key={project.id} project={project} index={index} />
+      {/* Full-bleed bento (viewport-based grid like CodePen) */}
+      <div ref={wrapRef} className="gallery-wrap">
+        <div ref={gridRef} className="gallery gallery--bento">
+          {projects.map((project) => (
+            <a
+              key={project.id}
+              href={project.link || `#project-${project.id}`}
+              target={project.link ? '_blank' : undefined}
+              rel={project.link ? 'noopener noreferrer' : undefined}
+              className="gallery__item group relative block h-full min-h-0 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <img
+                src={project.img}
+                alt={project.title}
+                className="min-h-[4rem] transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-bg-primary via-bg-primary/40 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <span className="font-display text-[0.65rem] leading-tight text-primary sm:text-xs">{project.title}</span>
+                <span className="mt-1 text-[0.6rem] uppercase tracking-wider text-zinc-400">{project.category}</span>
+              </div>
+            </a>
           ))}
+          <div className="gallery__item gallery__item--filler hidden md:block" aria-hidden />
         </div>
       </div>
-    </section>
-  )
-}
 
-function ProjectCard({ project, index }) {
-  const isEven = index % 2 === 0
-  const ref = useRef(null)
-
-  // Parallax effect for the card
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  })
-
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100])
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.9, 1], [0, 1, 1, 0])
-
-  return (
-    <motion.div
-      ref={ref}
-      style={{ opacity }}
-      className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-12 md:gap-24 items-center`}
-    >
-      {/* Image Side */}
-      <div className="w-full md:w-3/5 group cursor-pointer relative">
-        <a href={project.link || '#'} target={project.link ? "_blank" : "_self"} rel="noopener noreferrer" className="block overflow-hidden rounded-2xl border border-primary/20">
-          <div className="relative aspect-[16/10] overflow-hidden bg-bg-secondary">
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 z-10 transition-colors duration-500" />
-
-            {/* Image */}
-            <motion.img
-              src={project.img}
-              alt={project.title}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-
-            {/* Visit Button Overlay */}
-            {project.link && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="bg-bg-primary/90 backdrop-blur-sm text-primary px-6 py-3 rounded-full font-display uppercase tracking-wider flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  View Project
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1H11M11 1V11M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+      <div className="container-custom mx-auto mt-24 space-y-24 px-4 md:mt-32 md:space-y-32 md:px-8">
+        {projects.map((project) => (
+          <article
+            key={`detail-${project.id}`}
+            id={`project-${project.id}`}
+            className="scroll-mt-28 border-t border-white/[0.06] pt-16 first:border-t-0 first:pt-0"
+          >
+            <div className="flex flex-col gap-8 lg:flex-row lg:gap-16">
+              <div className="shrink-0 lg:w-2/5">
+                <a
+                  href={project.link || `#project-${project.id}`}
+                  target={project.link ? '_blank' : '_self'}
+                  rel={project.link ? 'noopener noreferrer' : undefined}
+                  className="block overflow-hidden rounded-2xl border border-white/[0.1] shadow-hub"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-surface">
+                    <img src={project.img} alt={project.title} className="h-full w-full object-cover" />
+                  </div>
+                </a>
+              </div>
+              <div className="flex flex-col items-start text-left lg:w-3/5">
+                <span className="mb-4 rounded-full border border-primary/35 bg-primary/[0.06] px-3 py-1 font-sans text-sm uppercase tracking-widest text-primary">
+                  {project.category}
+                </span>
+                <h3 className="mb-6 font-display text-3xl text-primary md:text-5xl">{project.title}</h3>
+                <p className="mb-8 text-lg leading-relaxed text-text-muted">{project.description}</p>
+                <div className="mb-8 flex flex-wrap gap-3">
+                  {project.tags &&
+                    project.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md border border-white/[0.06] bg-surface-elevated px-2 py-1 font-sans text-xs text-text-muted"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-6">
+                  <span className="font-sans text-text-muted">{project.year}</span>
+                  {project.link && (
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/link flex items-center gap-2 border-b border-primary/30 pb-0.5 text-primary transition-colors hover:border-primary hover:text-text-primary"
+                    >
+                      <span className="font-display text-sm uppercase tracking-wide">Case Study</span>
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="transform transition-transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1"
+                      >
+                        <path
+                          d="M1 1H11M11 1V11M11 1L1 11"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </a>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-        </a>
+            </div>
+          </article>
+        ))}
       </div>
-
-      {/* Content Side */}
-      <div className="w-full md:w-2/5 flex flex-col items-start text-left">
-        <span className="font-sans text-primary/80 text-sm tracking-widest uppercase mb-4 border border-primary/30 px-3 py-1 rounded-full">
-          {project.category}
-        </span>
-
-        <h3 className="text-4xl md:text-5xl font-display text-primary mb-6">
-          {project.title}
-        </h3>
-
-        <p className="text-text-muted leading-relaxed mb-8 text-lg">
-          {project.description}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          {project.tags && project.tags.map(tag => (
-            <span key={tag} className="text-xs font-sans text-text-muted/80 bg-bg-secondary px-2 py-1 rounded">
-              #{tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-6">
-          <span className="font-sans text-text-muted">
-            {project.year}
-          </span>
-          {project.link && (
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group/link flex items-center gap-2 text-primary hover:text-white transition-colors border-b border-primary/30 hover:border-primary pb-0.5"
-            >
-              <span className="font-display uppercase tracking-wide text-sm">Case Study</span>
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="transform group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform">
-                <path d="M1 1H11M11 1V11M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </a>
-          )}
-        </div>
-      </div>
-    </motion.div>
+    </section>
   )
 }
 

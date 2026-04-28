@@ -60,7 +60,7 @@ function App() {
       <SmoothScroll>
         <Preloader />
         <RedirectHandler />
-        <div className="min-h-screen flex flex-col bg-bg-primary text-text-primary selection:bg-primary selection:text-bg-primary">
+        <div className="hub-page-bg min-h-screen flex flex-col text-text-primary selection:bg-primary selection:text-bg-primary">
           <Navbar />
           <main className="flex-grow">
             <Routes>

@@ -7,7 +7,8 @@ export default defineConfig({
   base: '/portfolio/',
   server: {
     port: 3000,
-    open: true
+    // App uses basename `/portfolio` — open this URL or assets and routes break
+    open: '/portfolio/',
   }
 })
 

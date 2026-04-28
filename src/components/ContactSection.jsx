@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import emailjs from '@emailjs/browser'
 
 function ContactSection() {
+  const sectionRef = useRef(null)
   const formRef = useRef(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -19,6 +22,46 @@ function ContactSection() {
       emailjs.init(publicKey)
     }
   }, [])
+
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const head = sectionRef.current?.querySelector('.contact-header')
+      const cols = sectionRef.current?.querySelectorAll('.contact-col')
+      if (reduce) return
+
+      if (head) {
+        gsap.from(head.children, {
+          opacity: 0,
+          y: 32,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: head,
+            start: 'top 86%',
+            once: true,
+          },
+        })
+      }
+
+      if (cols?.length) {
+        gsap.from(cols, {
+          opacity: 0,
+          y: 40,
+          duration: 0.85,
+          stagger: 0.15,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: cols[0],
+            start: 'top 88%',
+            once: true,
+          },
+        })
+      }
+    },
+    { scope: sectionRef }
+  )
 
   const handleChange = (e) => {
     setFormData({
@@ -83,9 +126,9 @@ function ContactSection() {
   }
 
   return (
-    <section id="contact" className="section-padding bg-surface scroll-mt-24">
+    <section ref={sectionRef} id="contact" className="section-padding bg-surface/80 border-t border-white/[0.06] scroll-mt-24">
       <div className="container-custom max-w-4xl">
-        <div className="text-center mb-12">
+        <div className="contact-header text-center mb-12">
           <div className="inline-block mb-4">
             <span className="text-xs uppercase tracking-[0.2em] text-primary/60 font-medium">Get In Touch</span>
           </div>
@@ -94,13 +137,13 @@ function ContactSection() {
             <span className="block text-primary mt-2">Contact Me</span>
           </h2>
           <p className="text-text-muted text-sm max-w-2xl mx-auto leading-relaxed">
-            Let's discuss how we can work together to bring your ideas to life
+            Let&apos;s discuss how we can work together to bring your ideas to life
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Contact Form */}
-          <div className="bg-bg-primary p-6 rounded-lg border border-primary/20">
+          <div className="contact-col bg-bg-primary/70 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-white/[0.1] shadow-hub">
             <h3 className="text-lg font-bold text-primary mb-4">Send a Message</h3>
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -114,7 +157,7 @@ function ContactSection() {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-surface text-text-primary border border-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-surface text-text-primary border border-white/10 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-zinc-600"
                   placeholder="John Doe"
                 />
               </div>
@@ -129,7 +172,7 @@ function ContactSection() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-surface text-text-primary border border-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-surface text-text-primary border border-white/10 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-zinc-600"
                   placeholder="john@example.com"
                 />
               </div>
@@ -143,7 +186,7 @@ function ContactSection() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-surface text-text-primary border border-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-surface text-text-primary border border-white/10 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-zinc-600"
                   placeholder="Project Inquiry"
                 />
               </div>
@@ -158,7 +201,7 @@ function ContactSection() {
                   required
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-surface text-text-primary border border-surface focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-surface text-text-primary border border-white/10 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y transition-all placeholder:text-zinc-600"
                   placeholder="Tell me about your project..."
                 />
               </div>
@@ -176,7 +219,7 @@ function ContactSection() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-6 py-3 bg-primary text-bg-primary rounded-lg font-medium text-sm uppercase tracking-wider hover:bg-accent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+                className="w-full px-6 py-3 bg-primary text-bg-primary rounded-xl font-semibold text-sm uppercase tracking-wider hover:bg-accent hover:shadow-hub-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
               >
                 {isSubmitting ? (
                   <>
@@ -199,7 +242,7 @@ function ContactSection() {
           </div>
 
           {/* Contact Info & Resume Download */}
-          <div className="space-y-6">
+          <div className="contact-col space-y-6">
             {/* Contact Information */}
             <div className="bg-bg-primary p-6 rounded-lg border border-primary/20">
               <h3 className="text-lg font-bold text-primary mb-4">Get In Touch</h3>
@@ -247,7 +290,7 @@ function ContactSection() {
             </div>
 
             {/* Resume Download Section */}
-            <div className="bg-bg-primary p-6 rounded-lg border border-primary/20">
+            <div className="bg-bg-primary/70 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-white/[0.1] shadow-hub">
               <h3 className="text-lg font-bold text-primary mb-3">Download Resume</h3>
               <p className="text-text-muted text-sm mb-6">
                 Download my resume to learn more about my experience and skills
@@ -255,7 +298,7 @@ function ContactSection() {
               <a
                 href="/resume.pdf"
                 download
-                className="group inline-flex items-center gap-2 px-6 py-3 bg-primary text-bg-primary rounded-lg font-medium text-sm uppercase tracking-wider hover:bg-accent transition-all duration-300 w-full justify-center hover:shadow-lg hover:shadow-primary/50"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-primary text-bg-primary rounded-xl font-semibold text-sm uppercase tracking-wider hover:bg-accent hover:shadow-hub-glow transition-all duration-300 w-full justify-center"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
