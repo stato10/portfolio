@@ -108,25 +108,15 @@ a:hover {
 /* Navigation */
 
 
-/* Navbar z-index fix for React component */
+/* Navbar: enforce fixed layering (legacy CSS loads after Tailwind; avoids accidental position overrides). */
 header[class*="fixed"] {
+  position: fixed !important;
   z-index: 100 !important;
 }
 
-/* Ensure navbar nav element stays on top */
 nav[class*="pointer-events-auto"] {
   position: relative;
   z-index: 101;
-}
-
-/* Additional z-index fix for motion components */
-[data-framer-name],
-[class*="motion"] {
-  position: relative;
-}
-
-header[class*="fixed"][class*="motion"] {
-  z-index: 100 !important;
 }
 
 /* Ensure all content sections stay below navbar and have proper spacing */

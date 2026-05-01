@@ -1,40 +1,53 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
-import ReactPlayer from 'react-player'
 
-/** Public watch/shorts/embed URL or raw 11-char id — override with `VITE_HERO_YOUTUBE_URL` in `.env` if needed. */
-const DEFAULT_HERO_YOUTUBE = 'https://www.youtube.com/watch?v=34Y_pnKt4TQ'
+/**
+ * Self-hosted hero background (no YouTube iframe = no center play/pause chrome).
+ *
+ * 1. Export your reel from your editor as MP4 (H.264 or H.265), muted, 16:9, loop-friendly trim.
+ * 2. Place it in `public/videos/` — default filename `hero-video.mp4` (see `public/videos/README.md`).
+ * 3. Optional `.env`: `VITE_HERO_VIDEO=videos/my-file.mp4` or full URL `VITE_HERO_VIDEO=https://cdn…/loop.mp4`
+ *
+ * Served under Vite base: `{import.meta.env.BASE_URL}videos/hero-video.mp4` → `/portfolio/videos/hero-video.mp4`
+ */
+const DEFAULT_PUBLIC_VIDEO_REL = 'videos/hero-video.mp4'
 
-function parseYoutubeId(input) {
-    if (!input || typeof input !== 'string') return null
-    const trimmed = input.trim()
-    const fromUrl = trimmed.match(
-        /(?:youtu\.be\/|v=|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/
-    )
-    if (fromUrl) return fromUrl[1]
-    return /^[\w-]{11}$/.test(trimmed) ? trimmed : null
-}
-
-function useHeroYoutubeSrc() {
+function useHeroVideoUrl() {
     return useMemo(() => {
-        const env = import.meta.env.VITE_HERO_YOUTUBE_URL
-        const raw = typeof env === 'string' && env.trim() ? env.trim() : DEFAULT_HERO_YOUTUBE
-        const id = parseYoutubeId(raw)
-        if (id) {
-            return {
-                src: `https://www.youtube-nocookie.com/watch?v=${id}`,
-                videoId: id,
-            }
+        const env = import.meta.env.VITE_HERO_VIDEO?.trim()
+        if (env?.startsWith('http://') || env?.startsWith('https://')) {
+            return env
         }
-        return { src: raw.startsWith('http') ? raw : DEFAULT_HERO_YOUTUBE, videoId: null }
+        const rel = (env || DEFAULT_PUBLIC_VIDEO_REL).replace(/^\/+/, '')
+        const base = import.meta.env.BASE_URL || '/'
+        return `${base}${rel}`
     }, [])
 }
 
-function splitChars(word) {
-    return word.split('').map((char, i) => (
-        <span key={`${word}-${i}`} className="hero-char inline-block">
-            {char}
+/**
+ * Mimics GSAP SplitText `{ type: 'words, chars' }` for the public GSAP build (SplitText is Club-only).
+ *
+ * Official API (after you add SplitText from your GSAP account): use `SplitText.create('.split', {...})`
+ * and `onSplit(self) { return gsap.from(self.chars, { ... }) }` with `autoSplit: true` when splitting `lines`.
+ *
+ * @see https://gsap.com/docs/v3/Plugins/SplitText/
+ */
+function splitWordsAndChars(phrase, charExtraClass = '') {
+    const words = phrase.split(/\s+/).filter(Boolean)
+    return words.map((word, wi) => (
+        <span
+            key={`${phrase}-w-${wi}`}
+            className="split-word inline-block whitespace-nowrap mr-[0.35em] last:mr-0"
+        >
+            {word.split('').map((char, ci) => (
+                <span
+                    key={`${phrase}-w-${wi}-c-${ci}`}
+                    className={`split-char inline-block ${charExtraClass}`.trim()}
+                >
+                    {char}
+                </span>
+            ))}
         </span>
     ))
 }
@@ -42,8 +55,30 @@ function splitChars(word) {
 function Hero() {
     const root = useRef(null)
     const videoWrapRef = useRef(null)
+    const videoRef = useRef(null)
     const ctaRef = useRef(null)
-    const { src: heroVideoSrc, videoId: heroYoutubeId } = useHeroYoutubeSrc()
+
+    const heroVideoUrl = useHeroVideoUrl()
+
+    useLayoutEffect(() => {
+        const v = videoRef.current
+        if (!v) return
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            v.pause()
+            v.currentTime = 0
+            v.removeAttribute('autoplay')
+        }
+    }, [heroVideoUrl])
+
+    useEffect(() => {
+        const v = videoRef.current
+        if (!v) return
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+        const p = v.play()
+        if (p !== undefined && typeof p.catch === 'function') {
+            p.catch(() => {})
+        }
+    }, [heroVideoUrl])
 
     const scrollToProjects = () => {
         const projectsSection = document.getElementById('portfolio')
@@ -58,49 +93,43 @@ function Hero() {
         }
     }
 
-    useGSAP(
-        (context, contextSafe) => {
-            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-            if (reduce) return
+    useGSAP(() => {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (reduce) return undefined
+
+        let alive = true
+        let btnCleanup = () => {}
+
+        const boot = () => {
+            if (!alive) return
+
+            btnCleanup()
+            btnCleanup = () => {}
 
             const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
 
-            tl.from('.hero-eyebrow', { opacity: 0, y: 18, duration: 0.7 }, 0)
+            // Same idea as: SplitText.create('.split', { type: 'words, chars' }); gsap.from(split.chars, {...})
+            tl.from('.split-char', {
+                duration: 1,
+                y: 100,
+                autoAlpha: 0,
+                stagger: 0.05,
+            })
                 .from(
-                    '.hero-line1 .hero-char',
-                    {
-                        yPercent: 108,
-                        opacity: 0,
-                        skewY: 3,
-                        duration: 0.88,
-                        stagger: { each: 0.032, from: 'start' },
-                        ease: 'power4.out',
-                    },
-                    0.1
+                    '.hero-desc',
+                    { opacity: 0, y: 24, duration: 0.8 },
+                    '-=1.15'
                 )
-                .from(
-                    '.hero-line2 .hero-char',
-                    {
-                        yPercent: 108,
-                        opacity: 0,
-                        skewY: -2.5,
-                        duration: 0.88,
-                        stagger: { each: 0.032, from: 'start' },
-                        ease: 'power4.out',
-                    },
-                    0.18
-                )
-                .from('.hero-desc', { opacity: 0, y: 24, duration: 0.8 }, 0.38)
-                .from('.hero-cta', { opacity: 0, y: 18, duration: 0.72 }, 0.48)
+                .from('.hero-cta', { opacity: 0, y: 18, duration: 0.72 }, '-=0.55')
                 .from(
                     '.hero-cta-line',
-                    { scaleX: 0, transformOrigin: 'left center', duration: 0.65, ease: 'power2.inOut' },
-                    0.62
-                )
-                .from(
-                    '.hero-badge',
-                    { opacity: 0, y: 12, scale: 0.94, duration: 0.55, ease: 'back.out(1.35)' },
-                    0.52
+                    {
+                        scaleX: 0,
+                        transformOrigin: 'left center',
+                        duration: 0.65,
+                        ease: 'power2.inOut',
+                    },
+                    '-=0.45'
                 )
 
             const parallaxRoots = root.current?.querySelectorAll('.hero-parallax')
@@ -134,22 +163,35 @@ function Hero() {
 
             const btn = ctaRef.current
             if (btn) {
-                const onEnter = contextSafe(() => {
+                const onEnter = () => {
+                    if (!alive) return
                     gsap.to(btn, { scale: 1.03, duration: 0.35, ease: 'power2.out' })
-                })
-                const onLeave = contextSafe(() => {
+                }
+                const onLeave = () => {
                     gsap.to(btn, { scale: 1, duration: 0.4, ease: 'power2.out' })
-                })
+                }
                 btn.addEventListener('mouseenter', onEnter)
                 btn.addEventListener('mouseleave', onLeave)
-                return () => {
+                btnCleanup = () => {
                     btn.removeEventListener('mouseenter', onEnter)
                     btn.removeEventListener('mouseleave', onLeave)
                 }
             }
-        },
-        { scope: root }
-    )
+        }
+
+        if (typeof document !== 'undefined' && document.fonts?.ready) {
+            document.fonts.ready.then(() => {
+                if (alive) boot()
+            })
+        } else {
+            boot()
+        }
+
+        return () => {
+            alive = false
+            btnCleanup()
+        }
+    }, { scope: root })
 
     return (
         <section
@@ -164,37 +206,30 @@ function Hero() {
                     className="absolute inset-0 z-[1] select-none will-change-transform pointer-events-none"
                     aria-hidden
                 >
-                    <ReactPlayer
-                        src={heroVideoSrc}
-                        playing
-                        loop
-                        muted
-                        playsInline
-                        controls={false}
-                        width="100%"
-                        height="100%"
-                        className="absolute top-1/2 left-1/2 min-w-full min-h-full [&_iframe]:pointer-events-none"
+                    {/* Native file: crisp up to encoded resolution (e.g. 4K MP4); no third-party overlay. */}
+                    <video
+                        ref={videoRef}
+                        className="absolute left-1/2 top-1/2 min-h-full min-w-full object-cover pointer-events-none"
                         style={{
                             transform: 'translate(-50%, -50%) scale(1.32)',
                             maxWidth: 'none',
                         }}
-                        config={{
-                            youtube: {
-                                fs: 0,
-                                disablekb: 1,
-                                rel: 0,
-                                modestbranding: 1,
-                                iv_load_policy: 3,
-                                playsinline: 1,
-                                ...(typeof window !== 'undefined' && {
-                                    origin: window.location.origin,
-                                }),
-                                ...(heroYoutubeId ? { playlist: heroYoutubeId } : {}),
-                            },
-                        }}
+                        src={heroVideoUrl}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="auto"
+                        controls={false}
+                        disablePictureInPicture
+                        controlsList="nodownload nofullscreen noplaybackrate"
+                    />
+                    {/* Block stray pointer/context-menu focus on video in background stack */}
+                    <div
+                        className="pointer-events-none absolute inset-0 z-10 bg-transparent"
+                        aria-hidden
                     />
                 </div>
-                {/* Scrims sit above the video (no backdrop-filter / no blur on footage) */}
                 <div
                     className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-r from-bg-primary/[0.82] via-bg-primary/[0.38] to-transparent"
                     aria-hidden
@@ -215,12 +250,24 @@ function Hero() {
                         className="hero-parallax mb-8 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8"
                         data-depth="0.32"
                     >
-                        <span className="hero-eyebrow block text-sm md:text-base font-sans tracking-[0.2em] uppercase text-[#c9c4bb] [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_16px_rgba(0,0,0,0.45)]">
-                            Full Stack Developer
-                        </span>
+                        <div
+                            className="split hero-split-line hero-eyebrow flex flex-wrap items-center gap-x-2 gap-y-1 overflow-hidden text-sm md:text-base font-sans tracking-[0.2em] uppercase text-[#c9c4bb] [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_16px_rgba(0,0,0,0.45)]"
+                            aria-label="Full Stack Developer"
+                        >
+                            <span className="contents" aria-hidden="true">
+                                {splitWordsAndChars('Full Stack Developer')}
+                            </span>
+                        </div>
                         <span className="hero-badge inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/45 px-4 py-1.5 text-xs font-sans uppercase tracking-widest text-primary shadow-[0_0_0_1px_rgba(10,228,72,0.12)]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(10,228,72,0.8)]" />
-                            Open to collaborations
+                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(10,228,72,0.8)]" />
+                            <span
+                                className="split hero-split-line flex flex-wrap items-center gap-x-1 gap-y-0.5 overflow-hidden"
+                                aria-label="Open to collaborations"
+                            >
+                                <span className="contents" aria-hidden="true">
+                                    {splitWordsAndChars('Open to collaborations')}
+                                </span>
+                            </span>
                         </span>
                     </div>
 
@@ -228,14 +275,26 @@ function Hero() {
                         className="hero-parallax flex flex-col font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold leading-[0.92] tracking-tighter mb-10 md:mb-12"
                         data-depth="0.48"
                     >
-                        <span className="hero-line1 block overflow-hidden pb-1">
-                            <span className="inline-block bg-gradient-to-r from-[#fafaf8] via-primary to-[#7ee8a8] bg-clip-text text-transparent drop-shadow-[0_3px_28px_rgba(0,0,0,0.75)]">
-                                {splitChars('CREATIVE')}
+                        <span
+                            className="hero-line hero-line1 hero-split-line split block overflow-hidden pb-1"
+                            aria-label="CREATIVE"
+                        >
+                            <span className="inline-block" aria-hidden="true">
+                                {splitWordsAndChars(
+                                    'CREATIVE',
+                                    'bg-gradient-to-r from-[#fafaf8] via-primary to-[#7ee8a8] bg-clip-text text-transparent drop-shadow-[0_3px_28px_rgba(0,0,0,0.75)]'
+                                )}
                             </span>
                         </span>
-                        <span className="hero-line2 block overflow-hidden pb-1 -mt-1 sm:-mt-2">
-                            <span className="inline-block bg-gradient-to-br from-[#f2efe6] via-[#bfe8d8] to-[#7aa89a] bg-clip-text text-transparent drop-shadow-[0_4px_32px_rgba(0,0,0,0.78)]">
-                                {splitChars('ENGINEER')}
+                        <span
+                            className="hero-line hero-line2 hero-split-line split block overflow-hidden pb-1 -mt-1 sm:-mt-2"
+                            aria-label="ENGINEER"
+                        >
+                            <span className="inline-block" aria-hidden="true">
+                                {splitWordsAndChars(
+                                    'ENGINEER',
+                                    'bg-gradient-to-br from-[#f2efe6] via-[#bfe8d8] to-[#7aa89a] bg-clip-text text-transparent drop-shadow-[0_4px_32px_rgba(0,0,0,0.78)]'
+                                )}
                             </span>
                         </span>
                     </h1>

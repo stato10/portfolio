@@ -12,7 +12,7 @@ const projects = [
     year: '2025',
     description: 'A comprehensive interview preparation platform featuring a realistic AI avatar. Candidates can practice with an intelligent coach that provides real-time feedback on answers, body language, and speaking pace.',
     img: 'https://res.cloudinary.com/dpz2lh8hu/image/upload/v1769536830/Screenshot_2026-01-27_195603_jab8yn.png',
-    link: 'https://github.com/stato10/interview-avatar-AI',
+    link: 'https://github.com/stato10/interviewAvatar',
     tags: ['React', 'TypeScript', 'TailwindCSS', 'Python', 'FastAPI', 'LiveKit', 'OpenAI GPT-4o'],
   },
   {

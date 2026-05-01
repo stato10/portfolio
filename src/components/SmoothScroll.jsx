@@ -1,9 +1,14 @@
-import { useEffect } from 'react'
+import { createContext, useEffect, useRef } from 'react'
 import Lenis from '@studio-freight/lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+/** Ref to the active Lenis instance so nav / in-app links can call `scrollTo` (window.scrollTo does not move Lenis). */
+export const LenisRefContext = createContext(null)
+
 export default function SmoothScroll({ children }) {
+    const lenisRef = useRef(null)
+
     useEffect(() => {
         const lenis = new Lenis({
             duration: 1.2,
@@ -15,6 +20,8 @@ export default function SmoothScroll({ children }) {
             smoothTouch: false,
             touchMultiplier: 2,
         })
+
+        lenisRef.current = lenis
 
         lenis.on('scroll', ScrollTrigger.update)
 
@@ -28,10 +35,11 @@ export default function SmoothScroll({ children }) {
 
         return () => {
             gsap.ticker.remove(tickerCb)
+            lenisRef.current = null
             lenis.destroy()
             ScrollTrigger.refresh()
         }
     }, [])
 
-    return <>{children}</>
+    return <LenisRefContext.Provider value={lenisRef}>{children}</LenisRefContext.Provider>
 }

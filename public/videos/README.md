@@ -6,13 +6,24 @@
    - Recommended format: MP4
    - Recommended name: `hero-video.mp4`
 
-2. **Update the video path** in `src/components/Hero.jsx`:
-   - The default path is already set to `/videos/hero-video.mp4`
-   - If you use a different filename, update line 3 in Hero.jsx
+2. **Naming**: default filename is **`hero-video.mp4`**. Paths are resolved with Vite **`base`** (e.g. `/portfolio/videos/hero-video.mp4`).
 
-3. **Alternative: Use external URL**
-   - If your video is hosted elsewhere (Cloudinary, etc.), update the path in Hero.jsx to the full URL
-   - Example: `const heroVideo = 'https://your-cdn.com/video.mp4'`
+3. **Optional `.env`** (project root):
+
+   ```
+   # Relative path under `public/` (no leading slash), or HTTPS URL:
+   VITE_HERO_VIDEO=videos/hero-video.mp4
+   # VITE_HERO_VIDEO=https://cdn.example.com/my-loop.mp4
+   ```
+
+4. **Alternative: CDN**
+   - Set `VITE_HERO_VIDEO=https://your-cdn.com/video.mp4` so the `<video>` `src` is that URL (works after rebuild / dev server restart).
+
+
+## Updating the hero in code
+
+
+The hero reads `VITE_HERO_VIDEO`, else defaults to `videos/hero-video.mp4`. To change filename without env, edit `DEFAULT_PUBLIC_VIDEO_REL` in `src/components/Hero.jsx`.
 
 ## Video Requirements
 
