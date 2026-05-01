@@ -22,12 +22,20 @@ function Navbar() {
     const navigate = useNavigate()
     const lenisRef = useContext(LenisRefContext)
 
+    /** Latest scrollToHash for delayed post-menu-close nudges (after body unlock + layout). */
+    const scrollToHashRef = useRef(() => {})
+
     const scrollToHero = useCallback(() => {
         const lenis = lenisRef?.current
         const el = document.getElementById('hero')
+        try {
+            lenis?.resize?.()
+        } catch (_) {
+            /* older Lenis */
+        }
         if (lenis && typeof lenis.scrollTo === 'function') {
             if (el) {
-                lenis.scrollTo('#hero', { offset: NAV_SCROLL_OFFSET })
+                lenis.scrollTo(el, { offset: NAV_SCROLL_OFFSET })
             } else {
                 lenis.scrollTo(0, { immediate: true })
             }
@@ -43,14 +51,20 @@ function Navbar() {
 
     const scrollToHash = useCallback(
         (hash) => {
-            const id = hash.replace('#', '')
+            const id = typeof hash === 'string' ? hash.replace(/^#/, '').trim() : ''
             if (!id) return
+            const element = document.getElementById(id)
             const lenis = lenisRef?.current
+            try {
+                lenis?.resize?.()
+            } catch (_) {
+                /* optional */
+            }
             if (lenis && typeof lenis.scrollTo === 'function') {
-                lenis.scrollTo(`#${id}`, { offset: NAV_SCROLL_OFFSET })
+                const target = element ?? `#${id}`
+                lenis.scrollTo(target, { offset: NAV_SCROLL_OFFSET })
                 return
             }
-            const element = document.getElementById(id)
             if (element) {
                 const top = element.getBoundingClientRect().top + window.pageYOffset + NAV_SCROLL_OFFSET
                 window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
@@ -58,6 +72,8 @@ function Navbar() {
         },
         [lenisRef]
     )
+
+    scrollToHashRef.current = scrollToHash
 
     const [menuOpen, setMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
@@ -72,8 +88,10 @@ function Navbar() {
     const toggleMenuRef = useRef(null)
     /** Keeps latest menuOpen for click handlers without stale closures. */
     const menuOpenRef = useRef(false)
-    /** Run after overlay closes + body scroll lock released (see useEffect below). */
+    /** Queued taps while drawer is closing — flushed after menuOpen flips false (same tick as GSAP `.call`). */
     const pendingAfterMobileMenuCloseRef = useRef(null)
+    /** Killed when reopening drawer so orphaned scroll jobs don’t run. */
+    const pendingFlushTweenRef = useRef(null)
 
     menuOpenRef.current = menuOpen
 
@@ -343,6 +361,33 @@ function Navbar() {
             .call(() => {
                 setMenuOpen(false)
             })
+            .call(() => {
+                pendingFlushTweenRef.current?.kill()
+                pendingFlushTweenRef.current = gsap.delayedCall(0.16, () => {
+                    pendingFlushTweenRef.current = null
+                    const queued = pendingAfterMobileMenuCloseRef.current
+                    if (!queued) return
+                    pendingAfterMobileMenuCloseRef.current = null
+                    const len = lenisRef?.current
+                    try {
+                        len?.resize?.()
+                    } catch (_) {
+                        /* optional */
+                    }
+                    queued()
+                    try {
+                        len?.resize?.()
+                    } catch (_) {
+                        /* optional */
+                    }
+                    window.requestAnimationFrame(() => {
+                        window.requestAnimationFrame(() => {
+                            scrollToHashRef.current(window.location.hash)
+                            gsap.delayedCall(0.12, () => scrollToHashRef.current(window.location.hash))
+                        })
+                    })
+                })
+            })
     }, [])
 
     const toggleMobileMenu = useCallback(
@@ -353,6 +398,8 @@ function Navbar() {
             menuTl.current.clear()
 
             if (next) {
+                pendingFlushTweenRef.current?.kill()
+                pendingFlushTweenRef.current = null
                 pendingAfterMobileMenuCloseRef.current = null
                 setMenuOpen(true)
                 requestAnimationFrame(() => openMobileMenu())
@@ -392,17 +439,6 @@ function Navbar() {
         pendingAfterMobileMenuCloseRef.current = action
         toggleMenuRef.current?.(false)
     }, [])
-
-    useEffect(() => {
-        if (menuOpen) return
-        const pending = pendingAfterMobileMenuCloseRef.current
-        if (!pending) return
-        pendingAfterMobileMenuCloseRef.current = null
-        const tid = window.setTimeout(() => {
-            pending()
-        }, 80)
-        return () => window.clearTimeout(tid)
-    }, [menuOpen])
 
     const handlePrimaryHomeClick = useCallback(
         (e) => {
