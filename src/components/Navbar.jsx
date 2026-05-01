@@ -70,6 +70,12 @@ function Navbar() {
     const barBotRef = useRef(null)
     const menuBtnRef = useRef(null)
     const toggleMenuRef = useRef(null)
+    /** Keeps latest menuOpen for click handlers without stale closures. */
+    const menuOpenRef = useRef(false)
+    /** Run after overlay closes + body scroll lock released (see useEffect below). */
+    const pendingAfterMobileMenuCloseRef = useRef(null)
+
+    menuOpenRef.current = menuOpen
 
     useEffect(() => {
         const handleScroll = () => {
@@ -196,19 +202,6 @@ function Navbar() {
         },
         [location.pathname, location.hash, navigate, scrollToHash]
     )
-
-    const handlePrimaryHomeClick = (e) => {
-        handleLinkClick()
-        if (location.pathname === '/') {
-            e.preventDefault()
-            if (location.hash) {
-                navigate('/', { replace: true })
-            }
-            scrollToHero()
-            return
-        }
-        setTimeout(scrollToHero, 200)
-    }
 
     const linkIsActive = (link) => {
         if (link.path === '/') {
@@ -360,6 +353,7 @@ function Navbar() {
             menuTl.current.clear()
 
             if (next) {
+                pendingAfterMobileMenuCloseRef.current = null
                 setMenuOpen(true)
                 requestAnimationFrame(() => openMobileMenu())
             } else {
@@ -384,6 +378,49 @@ function Navbar() {
     )
 
     toggleMenuRef.current = toggleMobileMenu
+
+    /**
+     * While the mobile drawer is open, document.body stays `position: fixed` until GSAP fires
+     * `setMenuOpen(false)`. Navigating / scrolling in that window is ignored on phones — defer until closed.
+     */
+    const deferAfterMobileOverlayClose = useCallback((action) => {
+        if (typeof action !== 'function') return
+        if (!menuOpenRef.current) {
+            action()
+            return
+        }
+        pendingAfterMobileMenuCloseRef.current = action
+        toggleMenuRef.current?.(false)
+    }, [])
+
+    useEffect(() => {
+        if (menuOpen) return
+        const pending = pendingAfterMobileMenuCloseRef.current
+        if (!pending) return
+        pendingAfterMobileMenuCloseRef.current = null
+        const tid = window.setTimeout(() => {
+            pending()
+        }, 80)
+        return () => window.clearTimeout(tid)
+    }, [menuOpen])
+
+    const handlePrimaryHomeClick = useCallback(
+        (e) => {
+            e.preventDefault()
+            deferAfterMobileOverlayClose(() => {
+                if (location.pathname === '/') {
+                    if (location.hash) {
+                        navigate('/', { replace: true })
+                    }
+                    scrollToHero()
+                    return
+                }
+                navigate('/')
+                window.setTimeout(() => scrollToHero(), 250)
+            })
+        },
+        [deferAfterMobileOverlayClose, location.pathname, location.hash, navigate, scrollToHero]
+    )
 
     useLayoutEffect(() => {
         const nav = overlayRef.current
@@ -474,8 +511,9 @@ function Navbar() {
                                             }}
                                             onClick={(e) => {
                                                 e.preventDefault()
-                                                handleLinkClick()
-                                                goToPrimarySection(link.hash)
+                                                deferAfterMobileOverlayClose(() =>
+                                                    goToPrimarySection(link.hash)
+                                                )
                                             }}
                                             className={`${base} ${active ? activeCls : inactive}`}
                                         >
@@ -580,8 +618,9 @@ function Navbar() {
                                             tabIndex={-1}
                                             onClick={(e) => {
                                                 e.preventDefault()
-                                                handleLinkClick()
-                                                goToPrimarySection(link.hash)
+                                                deferAfterMobileOverlayClose(() =>
+                                                    goToPrimarySection(link.hash)
+                                                )
                                             }}
                                             className={`block py-3 text-lg font-semibold uppercase tracking-tight sm:py-3.5 sm:text-xl ${active ? activeRow : idle}`}
                                         >
@@ -603,7 +642,10 @@ function Navbar() {
                         <Link
                             to="/resume"
                             tabIndex={-1}
-                            onClick={() => toggleMenuRef.current?.(false)}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                deferAfterMobileOverlayClose(() => navigate('/resume'))
+                            }}
                             className={`inline-flex items-center rounded-full border border-black/35 bg-black/15 px-4 py-2 font-mono text-[11px] font-medium ${
                                 location.pathname === '/resume' ? 'ring-2 ring-black/35' : ''
                             }`}
@@ -615,8 +657,7 @@ function Navbar() {
                             tabIndex={-1}
                             className="rounded-full border border-black/25 bg-black/10 px-4 py-2 font-mono text-[11px]"
                             onClick={() => {
-                                handleLinkClick()
-                                goToPrimarySection('#portfolio')
+                                deferAfterMobileOverlayClose(() => goToPrimarySection('#portfolio'))
                             }}
                         >
                             View projects
