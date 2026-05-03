@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Menu, Navigation } from 'lucide-react'
 import gsap from 'gsap'
 import NavbarMobileMenu from './NavbarMobileMenu'
 import { PRIMARY_NAV_LINKS } from '../constants/primaryNavLinks'
 import { LenisRefContext } from './SmoothScroll'
-
-const NAV_LINK_CLASSES =
-    'relative px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/60'
+import { cn } from '@/lib/utils'
+import {
+    portfolioNavContainerVariants,
+    portfolioCollapsedIconVariants,
+    portfolioItemVariants,
+    usePortfolioNavScrollExpanded,
+    useMediaQuery,
+} from '@/components/ui/navigation-menu'
 
 /** Fixed header offset passed to Lenis.scrollTo (negative raises target). */
 const NAV_SCROLL_OFFSET = -96
@@ -75,6 +81,10 @@ function Navbar() {
 
     scrollToHashRef.current = scrollToHash
 
+    const isSmallScreen = useMediaQuery('(max-width: 767px)')
+    const { isExpanded: desktopNavExpanded, setExpanded: setDesktopNavExpanded, handleCollapsedChromeClick } =
+        usePortfolioNavScrollExpanded()
+
     const [menuOpen, setMenuOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
     const [activeSection, setActiveSection] = useState('')
@@ -88,6 +98,8 @@ function Navbar() {
     const toggleMenuRef = useRef(null)
     /** Keeps latest menuOpen for click handlers without stale closures. */
     const menuOpenRef = useRef(false)
+    /** Desktop md+: full bar vs collapsed scroll chip (AnimatedNav-style); mobile never collapses. */
+    const showNavChrome = isSmallScreen || desktopNavExpanded
     /** Queued taps while drawer is closing — flushed after menuOpen flips false (same tick as GSAP `.call`). */
     const pendingAfterMobileMenuCloseRef = useRef(null)
     /** Killed when reopening drawer so orphaned scroll jobs don’t run. */
@@ -194,7 +206,7 @@ function Navbar() {
         }
     }, [])
 
-    /** When `/` carries a hash, scroll to section (works after SPA nav from `/resume`, `/blog`, etc.). */
+    /** When `/` carries a hash, scroll to section (works after SPA nav from `/blog`, etc.). */
     useEffect(() => {
         if (location.pathname !== '/') return
         const h = location.hash
@@ -202,12 +214,6 @@ function Navbar() {
         const t = window.setTimeout(() => scrollToHash(h), 100)
         return () => window.clearTimeout(t)
     }, [location.pathname, location.hash, scrollToHash])
-
-    const handleLinkClick = useCallback(() => {
-        if (menuOpen) {
-            toggleMenuRef.current?.(false)
-        }
-    }, [menuOpen])
 
     const goToPrimarySection = useCallback(
         (hash) => {
@@ -490,133 +496,205 @@ function Navbar() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             >
-                <nav
-                    className={[
-                        'pointer-events-auto flex w-full max-w-[1200px] items-center justify-between gap-4 rounded-2xl border px-4 py-3 md:gap-8 md:px-6 md:py-3.5',
-                        'transition-[background-color,border-color,box-shadow] duration-300 ease-out',
+                <motion.nav
+                    layout
+                    variants={portfolioNavContainerVariants}
+                    animate={showNavChrome ? 'expanded' : 'collapsed'}
+                    initial={false}
+                    onClick={() => {
+                        if (!showNavChrome && !isSmallScreen) {
+                            setDesktopNavExpanded(true)
+                        }
+                    }}
+                    whileHover={!isSmallScreen && !showNavChrome ? { scale: 1.06 } : undefined}
+                    whileTap={!isSmallScreen && !showNavChrome ? { scale: 0.96 } : undefined}
+                    tabIndex={!showNavChrome && !isSmallScreen ? 0 : undefined}
+                    onKeyDown={(e) => {
+                        if (!isSmallScreen && !showNavChrome && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault()
+                            setDesktopNavExpanded(true)
+                        }
+                    }}
+                    aria-expanded={isSmallScreen ? undefined : desktopNavExpanded}
+                    aria-label={!showNavChrome && !isSmallScreen ? 'Expand navigation' : undefined}
+                    className={cn(
+                        'pointer-events-auto flex w-full max-w-[1200px] flex-row items-center justify-between gap-4 px-4 py-3',
+                        'rounded-2xl border transition-[background-color,border-color,box-shadow] duration-300 ease-out',
+                        showNavChrome
+                            ? 'md:grid md:max-w-[min(1180px,calc(100%-1.5rem))] md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-6 md:rounded-full md:border md:px-3 md:py-2.5 lg:px-4'
+                            : 'cursor-pointer md:h-14 md:w-14 md:min-h-14 md:min-w-14 md:max-w-14 md:flex-none md:flex-row md:!grid-cols-none md:justify-center md:gap-0 md:overflow-hidden md:rounded-full md:border md:!px-0 md:!py-0',
                         scrolled || menuOpen
-                            ? 'border-white/[0.1] bg-surface/85 shadow-hub backdrop-blur-xl md:backdrop-blur-2xl'
-                            : 'border-white/[0.1] bg-surface/[0.92] shadow-hub backdrop-blur-xl max-md:shadow-[0_4px_24px_rgba(0,0,0,0.45)] md:border-white/[0.06] md:bg-bg-primary/25 md:shadow-none md:backdrop-blur-md md:bg-bg-primary/20',
-                    ].join(' ')}
+                            ? 'border-white/[0.1] bg-surface/85 shadow-hub backdrop-blur-xl max-md:shadow-[0_4px_24px_rgba(0,0,0,0.45)] md:border-white/[0.1] md:bg-gradient-to-b md:from-white/[0.09] md:via-surface/80 md:to-surface/90 md:shadow-[0_12px_48px_-16px_rgba(0,0,0,0.65),0_0_0_1px_rgba(10,228,72,0.07)] md:backdrop-blur-2xl'
+                            : 'border-white/[0.1] bg-surface/[0.92] shadow-hub backdrop-blur-xl max-md:shadow-[0_4px_24px_rgba(0,0,0,0.45)] md:border-white/[0.07] md:bg-gradient-to-b md:from-white/[0.05] md:via-bg-primary/40 md:to-bg-primary/55 md:shadow-[0_8px_40px_-20px_rgba(0,0,0,0.55)] md:backdrop-blur-xl'
+                    )}
                 >
-                    <div className="flex min-w-0 flex-1 items-center gap-4 md:gap-6">
-                        <Link
-                            to="/"
-                            onClick={handlePrimaryHomeClick}
-                            className="group flex shrink-0 items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary rounded-lg"
-                        >
-                            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/[0.08] text-xs font-display text-primary transition-colors group-hover:border-primary/45 group-hover:bg-primary/[0.12]">
-                                AS
-                            </span>
-                            <span className="min-w-0">
-                                <span className="block truncate font-display text-xs tracking-wider text-text-primary transition-colors group-hover:text-primary sm:text-sm md:text-base">
-                                    STATO
-                                </span>
-                                <span className="hidden truncate text-[10px] font-sans uppercase tracking-[0.2em] text-text-muted sm:block">
-                                    Full Stack
-                                </span>
-                            </span>
-                        </Link>
-
-                        <span className="hidden h-8 w-px shrink-0 bg-white/10 md:block" aria-hidden />
-                    </div>
-
-                    <ul className="hidden list-none items-center gap-1 md:flex">
-                        {PRIMARY_NAV_LINKS.map((link) => {
-                            const active = linkIsActive(link)
-                            const base = NAV_LINK_CLASSES
-                            const inactive =
-                                'text-zinc-400 hover:text-text-primary hover:bg-white/[0.04]'
-                            const activeCls = 'text-primary bg-primary/[0.1] ring-1 ring-primary/25'
-
-                            return (
-                                <li key={link.name}>
-                                    {link.path === '/' ? (
-                                        <Link
-                                            to="/"
-                                            onClick={handlePrimaryHomeClick}
-                                            className={`${base} ${active ? activeCls : inactive}`}
-                                        >
-                                            {link.name}
-                                        </Link>
-                                    ) : (
-                                        <Link
-                                            to={{
-                                                pathname: '/',
-                                                hash: link.hash.slice(1),
-                                            }}
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                deferAfterMobileOverlayClose(() =>
-                                                    goToPrimarySection(link.hash)
-                                                )
-                                            }}
-                                            className={`${base} ${active ? activeCls : inactive}`}
-                                        >
-                                            {link.name}
-                                        </Link>
-                                    )}
-                                </li>
-                            )
-                        })}
-                    </ul>
-
-                    <div className="flex shrink-0 items-center gap-3">
-                        <Link
-                            to="/resume"
-                            onClick={handleLinkClick}
-                            className={`hidden rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors lg:inline-flex ${
-                                location.pathname === '/resume'
-                                    ? 'text-primary ring-1 ring-primary/30 bg-primary/[0.08]'
-                                    : 'text-zinc-500 hover:bg-white/[0.05] hover:text-text-primary'
-                            }`}
-                        >
-                            Résumé
-                        </Link>
-                        <button
-                            ref={menuBtnRef}
-                            id="portfolio-menu-toggle"
-                            type="button"
-                            onClick={() => toggleMobileMenu()}
-                            className="relative flex h-11 min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-lg border border-white/10 text-text-primary transition-colors hover:border-primary/35 hover:bg-primary/[0.06] hover:text-primary md:hidden"
-                            aria-expanded={menuOpen}
-                            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-                            aria-controls="portfolio-mobile-nav"
-                        >
-                            <span className="sr-only">Menu</span>
-                            <svg
-                                className="bar block h-5 w-5 text-text-primary"
-                                viewBox="0 0 22 22"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                aria-hidden="true"
+                    {showNavChrome ? (
+                        <>
+                            <motion.div
+                                variants={portfolioItemVariants}
+                                className="flex min-w-0 items-center gap-3 md:justify-self-start md:gap-3.5"
                             >
-                                <line
-                                    ref={barTopRef}
-                                    className="bar-top"
-                                    x1="4"
-                                    y1="7"
-                                    x2="18"
-                                    y2="7"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                                <line
-                                    ref={barBotRef}
-                                    className="bar-bot"
-                                    x1="4"
-                                    y1="13"
-                                    x2="18"
-                                    y2="13"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                </nav>
+                                <Link
+                                    to="/"
+                                    onClick={(e) => {
+                                        handleCollapsedChromeClick(e)
+                                        handlePrimaryHomeClick(e)
+                                    }}
+                                    className="group flex shrink-0 items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary rounded-xl"
+                                >
+                                    <Navigation
+                                        className="hidden h-5 w-5 shrink-0 text-primary/65 md:block"
+                                        aria-hidden
+                                    />
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/30 bg-primary/[0.08] text-xs font-display text-primary shadow-[0_0_20px_-8px_rgba(10,228,72,0.35)] transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/[0.14] md:h-10 md:w-10 md:rounded-xl">
+                                        AS
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className="block truncate font-display text-xs tracking-wider text-text-primary transition-colors group-hover:text-primary sm:text-sm md:text-[15px] md:tracking-[0.12em]">
+                                            STATO
+                                        </span>
+                                        <span className="hidden truncate text-[10px] font-sans uppercase tracking-[0.2em] text-text-muted sm:block md:text-[10px] md:tracking-[0.24em]">
+                                            Full Stack
+                                        </span>
+                                    </span>
+                                </Link>
+                            </motion.div>
+
+                            <motion.ul
+                                variants={portfolioItemVariants}
+                                className="hidden list-none md:flex md:justify-self-center md:items-center md:gap-0.5 md:rounded-full md:border md:border-white/[0.08] md:bg-black/35 md:p-1 md:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_4px_32px_-12px_rgba(0,0,0,0.5)] md:backdrop-blur-xl"
+                                aria-label="Primary sections"
+                            >
+                                {PRIMARY_NAV_LINKS.map((link) => {
+                                    const active = linkIsActive(link)
+                                    const deskLink =
+                                        'relative block overflow-hidden rounded-full px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary/50 md:px-5 md:py-2 lg:tracking-[0.26em]'
+
+                                    const label = (
+                                        <span className="relative z-10 inline-block">{link.name}</span>
+                                    )
+
+                                    return (
+                                        <li key={link.name} className="relative">
+                                            {link.path === '/' ? (
+                                                <Link
+                                                    to="/"
+                                                    onClick={(e) => {
+                                                        handleCollapsedChromeClick(e)
+                                                        handlePrimaryHomeClick(e)
+                                                    }}
+                                                    className={`${deskLink} ${
+                                                        active ? 'text-primary' : 'text-zinc-500 hover:text-zinc-100'
+                                                    }`}
+                                                >
+                                                    {active && (
+                                                        <motion.span
+                                                            layoutId="navbar-dock-active"
+                                                            className="absolute inset-0 z-0 rounded-full bg-gradient-to-b from-primary/30 to-primary/[0.08] ring-1 ring-primary/40 shadow-[0_0_32px_-10px_rgba(10,228,72,0.5)]"
+                                                            transition={{
+                                                                type: 'spring',
+                                                                stiffness: 460,
+                                                                damping: 34,
+                                                            }}
+                                                        />
+                                                    )}
+                                                    {label}
+                                                </Link>
+                                            ) : (
+                                                <Link
+                                                    to={{
+                                                        pathname: '/',
+                                                        hash: link.hash.slice(1),
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.preventDefault()
+                                                        handleCollapsedChromeClick(e)
+                                                        deferAfterMobileOverlayClose(() =>
+                                                            goToPrimarySection(link.hash)
+                                                        )
+                                                    }}
+                                                    className={`${deskLink} ${
+                                                        active ? 'text-primary' : 'text-zinc-500 hover:text-zinc-100'
+                                                    }`}
+                                                >
+                                                    {active && (
+                                                        <motion.span
+                                                            layoutId="navbar-dock-active"
+                                                            className="absolute inset-0 z-0 rounded-full bg-gradient-to-b from-primary/30 to-primary/[0.08] ring-1 ring-primary/40 shadow-[0_0_32px_-10px_rgba(10,228,72,0.5)]"
+                                                            transition={{
+                                                                type: 'spring',
+                                                                stiffness: 460,
+                                                                damping: 34,
+                                                            }}
+                                                        />
+                                                    )}
+                                                    {label}
+                                                </Link>
+                                            )}
+                                        </li>
+                                    )
+                                })}
+                            </motion.ul>
+
+                            <motion.div
+                                variants={portfolioItemVariants}
+                                className="flex shrink-0 items-center justify-end gap-2 md:justify-self-end md:gap-3"
+                            >
+                                <button
+                                    ref={menuBtnRef}
+                                    id="portfolio-menu-toggle"
+                                    type="button"
+                                    onClick={() => toggleMobileMenu()}
+                                    className="relative flex h-11 min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-lg border border-white/10 text-text-primary transition-colors hover:border-primary/35 hover:bg-primary/[0.06] hover:text-primary md:hidden"
+                                    aria-expanded={menuOpen}
+                                    aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                                    aria-controls="portfolio-mobile-nav"
+                                >
+                                    <span className="sr-only">Menu</span>
+                                    <svg
+                                        className="bar block h-5 w-5 text-text-primary"
+                                        viewBox="0 0 22 22"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        aria-hidden="true"
+                                    >
+                                        <line
+                                            ref={barTopRef}
+                                            className="bar-top"
+                                            x1="4"
+                                            y1="7"
+                                            x2="18"
+                                            y2="7"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                        />
+                                        <line
+                                            ref={barBotRef}
+                                            className="bar-bot"
+                                            x1="4"
+                                            y1="13"
+                                            x2="18"
+                                            y2="13"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                </button>
+                            </motion.div>
+                        </>
+                    ) : (
+                        <div className="relative flex h-full min-h-[2.75rem] w-full items-center justify-center md:min-h-0 md:min-w-0">
+                            <motion.div
+                                variants={portfolioCollapsedIconVariants}
+                                className="flex items-center justify-center text-primary"
+                            >
+                                <Menu className="h-6 w-6" aria-hidden />
+                            </motion.div>
+                        </div>
+                    )}
+                </motion.nav>
             </motion.header>
 
             {/* GSAP timeline targets `.nav-*` nodes inside NavbarMobileMenu (hidden md+). */}
@@ -674,31 +752,16 @@ function Navbar() {
                     )
                 })}
                 middleExtras={
-                    <>
-                        <Link
-                            to="/resume"
-                            tabIndex={-1}
-                            onClick={(e) => {
-                                e.preventDefault()
-                                deferAfterMobileOverlayClose(() => navigate('/resume'))
-                            }}
-                            className={`inline-flex items-center rounded-full border border-black/35 bg-black/15 px-4 py-2 font-mono text-[11px] font-medium ${
-                                location.pathname === '/resume' ? 'ring-2 ring-black/35' : ''
-                            }`}
-                        >
-                            Résumé
-                        </Link>
-                        <button
-                            type="button"
-                            tabIndex={-1}
-                            className="rounded-full border border-black/25 bg-black/10 px-4 py-2 font-mono text-[11px]"
-                            onClick={() => {
-                                deferAfterMobileOverlayClose(() => goToPrimarySection('#portfolio'))
-                            }}
-                        >
-                            View projects
-                        </button>
-                    </>
+                    <button
+                        type="button"
+                        tabIndex={-1}
+                        className="rounded-full border border-black/25 bg-black/10 px-4 py-2 font-mono text-[11px]"
+                        onClick={() => {
+                            deferAfterMobileOverlayClose(() => goToPrimarySection('#portfolio'))
+                        }}
+                    >
+                        View projects
+                    </button>
                 }
                 bottomExtras={
                     <li>

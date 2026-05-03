@@ -39,7 +39,7 @@ function Footer() {
             }}
             className="text-text-muted hover:text-primary transition-colors text-sm"
           >
-            Resume
+            Portfolio
           </a>
           <a 
             href="#contact" 
