@@ -171,6 +171,13 @@ export function OSProvider({ children, navigate, pathname }) {
   const launchProject = useCallback((projectId, options = {}) => {
     const project = projectById.get(projectId)
     if (!project) return false
+    const existing = state.windows.find((item) => item.projectId === project.id)
+    if (existing) {
+      dispatch({ type: 'FOCUS', id: existing.id })
+      const target = `/projects/${project.slug}`
+      if (pathname !== target) navigate(target)
+      return true
+    }
     const configuredLaunch = project.media.launch || {}
     const resolvedLaunch = resolveProjectLaunchMedia(configuredLaunch, {
       ...options,
@@ -188,7 +195,7 @@ export function OSProvider({ children, navigate, pathname }) {
       },
     })
     return true
-  }, [])
+  }, [state.windows, navigate, pathname])
 
   const clearProjectLaunch = useCallback(() => dispatch({ type: 'CLEAR_PROJECT_LAUNCH' }), [])
 

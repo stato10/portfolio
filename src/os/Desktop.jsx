@@ -18,7 +18,7 @@ export default function Desktop({ ready }) {
   const pointerFrameRef = useRef(null)
   const reduceMotion = useReducedMotion()
   const mobile = useMobileLayout()
-  const { openApp } = useOSStore()
+  const { openApp, mobileView } = useOSStore()
   const { pathname } = useLocation()
   const welcomed = useRef(false)
 
@@ -77,9 +77,11 @@ export default function Desktop({ ready }) {
       {mobile ? <MobileShell /> : <>
         <MenuBar />
         <DesktopIcons />
-        <WindowManager />
         <Dock />
       </>}
+      <div className={mobile ? 'mobile-stage mobile-window-stage' : 'desktop-window-stage'}>
+        <WindowManager activeOnly={mobile} suspended={mobile && mobileView !== 'app'} />
+      </div>
       <Spotlight />
       {!mobile && <TaskSwitcher />}
       <ProjectLaunchTransition />

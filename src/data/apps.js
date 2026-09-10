@@ -21,6 +21,13 @@ export const apps = [
     description: 'Selected software engineering, applied AI and automation case studies by Avraham Stato.',
   },
   {
+    id: 'music', title: 'Music', shortLabel: 'Music', icon: 'music',
+    accent: '#c33055', palette: ['#ff8195', '#d72e59', '#ffffff'],
+    defaultSize: { width: 860, height: 640 }, minimumSize: { width: 620, height: 500 },
+    keywords: ['spotify', 'playlist', 'stato', 'songs', 'listen', 'מוזיקה'], route: '/music',
+    description: 'Listen to the Stato playlist through the official Spotify player inside STATO OS.',
+  },
+  {
     id: 'terminal',
     title: 'Terminal',
     shortLabel: 'Terminal',

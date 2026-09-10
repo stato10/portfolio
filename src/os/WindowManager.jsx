@@ -13,8 +13,8 @@ function AppContent({ windowItem }) {
   )
 }
 
-export default function WindowManager({ activeOnly = false }) {
-  const { windows, setWindowBounds, activeWindowId, closeWindow, spotlightOpen, closeSpotlight, launch } = useOSStore()
+export default function WindowManager({ activeOnly = false, suspended = false }) {
+  const { windows, setWindowBounds, activeWindowId, closeWindow, spotlightOpen, closeSpotlight, taskViewOpen, closeTaskView, launch } = useOSStore()
   const windowsRef = useRef(windows)
 
   useEffect(() => {
@@ -42,21 +42,26 @@ export default function WindowManager({ activeOnly = false }) {
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key !== 'Escape') return
+      if (suspended) return
       if (spotlightOpen) {
         closeSpotlight()
+        return
+      }
+      if (taskViewOpen) {
+        closeTaskView()
         return
       }
       if (!launch && activeWindowId && !event.target.closest?.('input, textarea')) closeWindow(activeWindowId)
     }
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
-  }, [activeWindowId, closeSpotlight, closeWindow, launch, spotlightOpen])
+  }, [activeWindowId, closeSpotlight, closeWindow, launch, spotlightOpen, taskViewOpen, closeTaskView, suspended])
 
   return (
     <div className="window-layer">
       <AnimatePresence>
-        {windows.filter((windowItem) => !windowItem.minimized && (!activeOnly || windowItem.id === activeWindowId)).map((windowItem) => (
-          <AppWindow key={windowItem.id} windowItem={windowItem}>
+        {windows.map((windowItem) => (
+          <AppWindow key={windowItem.id} windowItem={windowItem} mobile={activeOnly} hidden={suspended || windowItem.minimized || (activeOnly && windowItem.id !== activeWindowId)}>
             <AppContent windowItem={windowItem} />
           </AppWindow>
         ))}

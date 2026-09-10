@@ -3,6 +3,8 @@ import { findProject, projects } from '../../data/projects'
 import { skillGroups } from '../../data/skills'
 
 const navigationTargets = new Map([
+  ['music', 'music'],
+  ['spotify', 'music'],
   ['projects', 'projects'],
   ['resume', 'resume'],
   ['about', 'about'],

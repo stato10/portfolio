@@ -38,7 +38,11 @@ body { background: #7aadef; }
 .desktop-icon.is-active small { background: #1765d3; }
 .desktop-icon.is-open::after { background: white; box-shadow: none; }
 .dock { bottom: 12px; padding: 9px 10px 7px; gap: 7px; border: 1px solid rgb(255 255 255 / 55%); border-radius: 22px; background: rgb(240 247 255 / 42%); box-shadow: 0 14px 38px rgb(26 44 102 / 22%); backdrop-filter: blur(30px) saturate(150%); }
-.dock-item { width: 60px; height: 65px; }
+.dock-item { width: 60px; height: 65px; flex: 0 1 60px; min-width: 36px; }
+.dock { max-width: calc(100vw - 24px); }
+.dock-icon { max-width: 100%; }
+.desktop-window-stage { display: contents; }
+.mobile-window-stage { position: absolute; inset: 31px 0 56px; z-index: 31; pointer-events: none; }
 .dock-icon { width: 56px; height: 56px; border-radius: 13px; box-shadow: 0 5px 8px rgb(30 49 99 / 22%); }
 .dock-item.is-active .dock-icon { box-shadow: 0 5px 8px rgb(30 49 99 / 22%); }
 .dock-running { width: 4px; height: 4px; left: 28px; bottom: 0; background: #283854; box-shadow: none; }

@@ -116,6 +116,8 @@ Depth distinguishes window focus and system navigation. Active windows use the t
 
 The Dock uses 30px blur and 150% saturation; the menu bar uses 28px blur and 160% saturation. Short inherited control and window transitions support focus, minimize and restore. Reduced-motion handling disables the documented shell transitions.
 
+Windows minimize toward their own Dock entry in 260ms and restore in 320ms; mobile uses a short 180ms transition. Reduced motion removes spatial travel. Minimized windows and mobile background apps remain mounted, inert and hidden, preserving tab, input and scroll state until explicitly closed. This is in-memory continuity, not persistence across reloads. Temporary Dock entries expose open project windows and Welcome; hiding a window pauses its media. The window layer remains mounted across desktop/mobile breakpoint changes.
+
 ## Shapes
 
 Windows and project cards use softly rounded rectangular frames. Controls are tighter, navigation rows slightly rounder, and the glass Dock forms a larger rounded tray. App icons are colorful rounded squares; the profile portrait and traffic-light controls are circles. Fine borders separate surfaces without luminous outlines.

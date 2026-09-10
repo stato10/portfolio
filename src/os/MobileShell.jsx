@@ -3,7 +3,6 @@ import { ArrowLeft, BatteryMedium, Grid2X2, Home, Search, Wifi, X } from 'lucide
 import { apps, appById } from '../data/apps'
 import { useOSStore } from '../store/useOSStore'
 import AppIcon from './AppIcon'
-import WindowManager from './WindowManager'
 
 const formatTime = () => new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date())
 const launcherApps = apps.filter((app) => app.id !== 'github')
@@ -68,8 +67,6 @@ export default function MobileShell() {
             <div className="mobile-direct-actions"><a href="mailto:statto3@gmail.com">Email</a><a href="tel:0548872039">Call</a></div>
           </section>
         )}
-
-        {mobileView === 'app' && <WindowManager activeOnly />}
 
         {mobileView === 'drawer' && (
           <section className="mobile-drawer" aria-label="All applications">

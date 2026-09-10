@@ -1,6 +1,7 @@
-import { Cpu, FileText, Folder, GitFork, Layers3, Send, Sparkles, TerminalSquare, UserRound } from 'lucide-react'
+import { Cpu, FileText, Folder, GitFork, Layers3, Music2, Send, Sparkles, TerminalSquare, UserRound } from 'lucide-react'
 
 const iconMap = {
+  music: Music2,
   cpu: Cpu,
   file: FileText,
   folder: Folder,

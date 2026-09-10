@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Pause, Play, RotateCcw, Volume2, VolumeX, X } from 'lucide-react'
+import { useWindowVisible } from './WindowVisibility'
 
 const cinematicVideo = `${import.meta.env.BASE_URL}videos/stato-cinematic.mp4`
 const cinematicPoster = `${import.meta.env.BASE_URL}images/os/stato-cinematic-poster.webp`
@@ -23,6 +24,14 @@ export default function CinematicShowcase({ compact = false }) {
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [ended, setEnded] = useState(false)
+  const windowVisible = useWindowVisible()
+
+  useEffect(() => {
+    if (windowVisible) return
+    videoRef.current?.pause()
+    setPlaying(false)
+    setOpen(false)
+  }, [windowVisible])
 
   useEffect(() => {
     if (!open) return undefined

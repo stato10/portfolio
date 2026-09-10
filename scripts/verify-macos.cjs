@@ -15,7 +15,7 @@ async function main() {
   async function capture(name) {
     await page.locator('.boot-screen').waitFor({ state: 'detached' })
     await page.locator('.app-loading').waitFor({ state: 'detached' })
-    await page.waitForFunction(() => getComputedStyle(document.querySelector('.os-desktop')).opacity === '1' && [...document.querySelectorAll('.app-window')].every(node => getComputedStyle(node).opacity === '1'))
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.os-desktop')).opacity === '1' && [...document.querySelectorAll('.app-window:not([aria-hidden="true"])')].every(node => getComputedStyle(node).opacity === '1'))
     await page.waitForFunction(() => [...document.images].filter(img => img.getBoundingClientRect().top < innerHeight && img.getBoundingClientRect().bottom > 0).every(img => img.complete), undefined, { timeout: 10000 }).catch(() => {})
     await page.evaluate(() => Promise.all([...document.images].filter(img => img.complete).map(img => img.decode().catch(() => {}))))
     await page.screenshot({ path: path.join(output, `${name}.png`), animations: 'disabled' })
@@ -29,7 +29,7 @@ async function main() {
   await page.getByRole('heading', { name: 'Make yourself at home.' }).waitFor()
   await page.getByRole('button', { name: 'Explore projects', exact: true }).click()
   await page.getByRole('button', { name: 'Show desktop', exact: true }).click()
-  await page.locator('[data-app="projects"]').waitFor({ state: 'detached' })
+  await page.locator('[data-app="projects"]').waitFor({ state: 'hidden' })
   await page.getByRole('button', { name: 'Restore Projects', exact: true }).click()
   await page.getByRole('textbox', { name: 'Search Projects', exact: true }).fill('Prisma')
   assert.equal(await page.locator('.portfolio-item').count(), 1)
