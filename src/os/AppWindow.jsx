@@ -4,6 +4,8 @@ import { Maximize2, Minus, X } from 'lucide-react'
 import { reducedWindowMotion, windowMotion } from '../motion/windowAnimations'
 import { useOSStore } from '../store/useOSStore'
 import { WindowVisibility } from './WindowVisibility'
+import useMiniPlayerDrag from './useMiniPlayerDrag'
+import { responsiveWindowBounds } from './windowGeometry'
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max))
 
@@ -13,8 +15,13 @@ export default function AppWindow({ windowItem, children, hidden = false, mobile
   const reduceMotion = useReducedMotion()
   const { closeWindow, focusWindow, minimizeWindow, toggleMaximize, setWindowBounds, activeWindowId } = useOSStore()
   const active = activeWindowId === windowItem.id
+  // Keep Music's live iframe accessible as a compact background player.
+  const miniPlayer = hidden && windowItem.appId === 'music'
+  const concealed = hidden && !miniPlayer
+  const miniDrag = useMiniPlayerDrag(windowRef, miniPlayer, mobile)
   const maximizedBounds = { x: 8, y: 40, width: window.innerWidth - 16, height: window.innerHeight - 112 }
-  const bounds = windowItem.maximized ? maximizedBounds : windowItem.bounds
+  const bounds = windowItem.maximized ? maximizedBounds : responsiveWindowBounds(windowItem,
+    { width: window.innerWidth, height: window.innerHeight }, windowItem.bounds)
   const dockTarget = mobile ? null : [...document.querySelectorAll('[data-dock-window]')].find((node) => node.dataset.dockWindow === windowItem.id)
   const dockBounds = dockTarget?.getBoundingClientRect()
   const layerBounds = windowRef.current?.offsetParent?.getBoundingClientRect()
@@ -45,7 +52,7 @@ export default function AppWindow({ windowItem, children, hidden = false, mobile
     const start = dragRef.current
     if (!start || start.pointerId !== event.pointerId) return
     const x = clamp(start.originX + event.clientX - start.startX, 8, window.innerWidth - bounds.width - 8)
-    const y = clamp(start.originY + event.clientY - start.startY, 40, window.innerHeight - 96)
+    const y = clamp(start.originY + event.clientY - start.startY, 44, window.innerHeight - bounds.height - 100)
     dragRef.current.latestX = x
     dragRef.current.latestY = y
     if (windowRef.current) {
@@ -68,20 +75,25 @@ export default function AppWindow({ windowItem, children, hidden = false, mobile
     <motion.section
       ref={windowRef}
       {...(reduceMotion ? reducedWindowMotion : windowMotion)}
-      layout={!mobile && !reduceMotion}
-      animate={hidden
+      layout={!mobile && !reduceMotion && !miniPlayer}
+      animate={concealed
         ? { ...minimizedPose, visibility: 'visible', transitionEnd: { visibility: 'hidden' } }
         : { opacity: 1, x: 0, y: 0, scale: 1, scaleX: 1, scaleY: 1, filter: 'blur(0px)', visibility: 'visible' }}
       transition={{ duration: reduceMotion ? 0.01 : mobile ? 0.18 : hidden ? 0.26 : 0.32, ease: [0.16, 1, 0.3, 1] }}
-      className={`app-window${active ? ' is-active' : ''}${windowItem.maximized ? ' is-maximized' : ''}`}
+      className={`app-window${active ? ' is-active' : ''}${windowItem.maximized && !miniPlayer ? ' is-maximized' : ''}${miniPlayer ? ' music-mini-window' : ''}`}
       data-app={windowItem.appId}
       data-window-id={windowItem.id}
-      data-window-hidden={hidden}
-      inert={hidden ? '' : undefined}
-      aria-hidden={hidden || undefined}
-      style={{ left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height, zIndex: windowItem.zIndex, pointerEvents: hidden ? 'none' : 'auto', '--window-accent': windowItem.accent || '#65dcff' }}
-      onPointerDown={() => focusWindow(windowItem.id)}
-      aria-label={`${windowItem.title} window`}
+      data-window-hidden={concealed}
+      inert={concealed ? '' : undefined}
+      aria-hidden={concealed || undefined}
+      style={{ left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height, zIndex: miniPlayer ? 100000 : windowItem.zIndex, pointerEvents: concealed ? 'none' : 'auto', '--window-accent': windowItem.accent || '#65dcff' }}
+      onPointerDown={(event) => { if (miniPlayer) miniDrag.onPointerDown(event); else focusWindow(windowItem.id) }}
+      onPointerMove={miniDrag.onPointerMove}
+      onPointerUp={miniDrag.onPointerUp}
+      onPointerCancel={miniDrag.onPointerUp}
+      onLostPointerCapture={miniDrag.onPointerUp}
+      onKeyDown={miniDrag.onKeyDown}
+      aria-label={miniPlayer ? 'Music mini player' : `${windowItem.title} window`}
     >
       <header
         className="window-titlebar"

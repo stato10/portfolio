@@ -2,6 +2,7 @@ import { createContext, createElement, useCallback, useContext, useMemo, useRedu
 import { appById } from '../data/apps'
 import { projectById } from '../data/projects'
 import { resolveProjectLaunchMedia } from '../motion/projectLaunchMedia'
+import { responsiveWindowBounds } from '../os/windowGeometry'
 
 const OSContext = createContext(null)
 
@@ -13,18 +14,7 @@ const viewportBounds = () => ({
 const startsInMobileHome = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches
 
 function getInitialBounds(app, offset = 0) {
-  const viewport = viewportBounds()
-  const width = Math.min(app.defaultSize?.width || 680, viewport.width - 24)
-  const height = Math.min(app.defaultSize?.height || 480, viewport.height - 132)
-  const centeredX = Math.round((viewport.width - width) / 2 + offset)
-  const centeredY = Math.round((viewport.height - height) / 2 - 18 + offset)
-
-  return {
-    x: Math.min(Math.max(12, centeredX), viewport.width - width - 12),
-    y: Math.min(Math.max(52, centeredY), viewport.height - 96),
-    width,
-    height,
-  }
+  return responsiveWindowBounds(app, viewportBounds(), null, offset)
 }
 
 const initialState = {
@@ -57,6 +47,7 @@ function reducer(state, action) {
       const windowItem = {
         id: windowId,
         appId: action.app.id,
+        defaultSize: action.app.defaultSize,
         title: action.app.title,
         accent: action.app.accent || '#65dcff',
         projectId: action.projectId || null,

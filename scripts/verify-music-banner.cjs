@@ -1,0 +1,77 @@
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
+const assert = require('node:assert/strict')
+
+async function main() {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true })
+  try {
+    for (const mobile of [false, true]) {
+      const page = await browser.newPage({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 800 }, reducedMotion: 'reduce' })
+      const errors = []
+      page.on('pageerror', error => errors.push(error.message))
+      await page.goto((process.env.PORTFOLIO_URL || 'http://127.0.0.1:3000/portfolio/') + 'music')
+      const embed = page.locator('iframe[title="Spotify Embed: Stato"]')
+      await embed.waitFor()
+      const frame = await (await embed.elementHandle()).contentFrame()
+      await frame.getByText('Stato', { exact: true }).first().waitFor()
+      await frame.getByRole('button', { name: /Play/ }).first().waitFor()
+      await page.waitForTimeout(1200) // Spotify hydrates and applies its own responsive layout.
+      await page.screenshot({ path: `.impeccable/review/music-refined-${mobile ? 'mobile' : 'desktop'}.png` })
+      await embed.evaluate(node => { node.dataset.continuityProbe = 'retained' })
+      if (mobile) await page.getByRole('button', { name: 'Home', exact: true }).click()
+      else await page.locator('[data-app="music"]').getByRole('button', { name: 'Minimize Music', exact: true }).click()
+      const mini = page.getByRole('region', { name: 'Music mini player', exact: true })
+      await mini.waitFor()
+      assert.equal(await mini.getAttribute('inert'), null)
+      const handle = mini.getByRole('button', { name: 'Move Music mini player' })
+      const beforeDrag = await mini.boundingBox()
+      const grip = await handle.boundingBox()
+      if (mobile) {
+        const session = await page.context().newCDPSession(page)
+        await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: grip.x + 35, y: grip.y + 18 }] })
+        await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: grip.x + 35, y: grip.y - 102 }] })
+        await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+        await session.detach()
+      } else {
+        await page.mouse.move(grip.x + 35, grip.y + 18)
+        await page.mouse.down()
+        await page.mouse.move(grip.x - 65, grip.y - 102, { steps: 12 })
+        await page.mouse.up()
+      }
+      const afterDrag = await mini.boundingBox()
+      assert.ok(afterDrag.y < beforeDrag.y - 80, 'drag moves player upward')
+      if (!mobile) assert.ok(afterDrag.x < beforeDrag.x - 60, 'desktop drag moves horizontally')
+      await handle.focus()
+      await page.keyboard.press('ArrowDown')
+      assert.ok((await mini.boundingBox()).y > afterDrag.y + 10, 'keyboard movement works')
+      assert.equal(await embed.getAttribute('data-continuity-probe'), 'retained')
+      await frame.getByRole('button', { name: /Play/ }).first().waitFor()
+      await page.waitForTimeout(800) // Allow the cross-origin embed to respond to its new viewport.
+      await page.screenshot({ path: `.impeccable/review/music-banner-${mobile ? 'mobile' : 'desktop'}.png` })
+      await mini.getByRole('button', { name: 'Browse songs', exact: true }).click()
+      await frame.getByRole('button', { name: 'Play track', exact: true }).nth(1).waitFor()
+      await page.waitForTimeout(800)
+      assert.equal(await mini.getByRole('button', { name: 'Collapse song list' }).getAttribute('aria-expanded'), 'true')
+      await page.screenshot({ path: `.impeccable/review/music-banner-tracks-${mobile ? 'mobile' : 'desktop'}.png` })
+      await mini.getByRole('button', { name: 'Collapse song list', exact: true }).click()
+      const box = await mini.boundingBox()
+      assert.ok(box.x >= 0 && box.y >= 0 && box.x + box.width <= page.viewportSize().width + 1)
+      assert.ok(box.y + box.height <= page.viewportSize().height - 56)
+      await mini.getByRole('button', { name: 'Restore Music window', exact: true }).click()
+      assert.equal(await embed.getAttribute('data-continuity-probe'), 'retained')
+      assert.equal(await embed.getAttribute('height'), '352')
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false)
+      // Validate the reverse breakpoint while the same iframe is alive.
+      await page.setViewportSize(mobile ? { width: 1280, height: 800 } : { width: 390, height: 844 })
+      assert.equal(await embed.getAttribute('data-continuity-probe'), 'retained')
+      await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1280, height: 800 })
+      if (mobile) await page.getByRole('button', { name: 'Home', exact: true }).click()
+      else await page.locator('[data-app="music"]').getByRole('button', { name: 'Minimize Music', exact: true }).click()
+      await page.getByRole('button', { name: 'Close Music mini player', exact: true }).click()
+      await embed.waitFor({ state: 'detached' })
+      assert.deepEqual(errors, [])
+      console.log(`PASS ${mobile ? 'mobile' : 'desktop'}: real Spotify UI, mini banner, browse/collapse, restore, same iframe, resize, close, bounds and no runtime errors`)
+      await page.close()
+    }
+  } finally { await browser.close() }
+}
+main().catch(error => { console.error(error); process.exitCode = 1 })

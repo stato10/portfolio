@@ -5,6 +5,7 @@ import App from './App.jsx'
 import '../style.css'
 import './os/portfolio-polish.css'
 import './os/macos.css'
+import './os/responsive-windows.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

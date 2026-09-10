@@ -19,12 +19,15 @@ async function main() {
       await embed.evaluate(node => { node.dataset.continuityProbe = 'retained' })
       if (mobile) {
         await page.getByRole('button', { name: 'Home', exact: true }).click()
-        await page.getByRole('button', { name: 'Recents', exact: true }).click()
-        await page.locator('.mobile-recents article > button').filter({ hasText: 'Music' }).click()
       } else {
         await page.locator('[data-app="music"]').getByRole('button', { name: 'Minimize Music', exact: true }).click()
-        await page.locator('.dock').getByRole('button', { name: 'Restore Music', exact: true }).click()
       }
+      const mini = page.getByRole('region', { name: 'Music mini player', exact: true })
+      await mini.waitFor({ state: 'visible' })
+      assert.equal(await mini.getAttribute('inert'), null)
+      assert.equal(await embed.getAttribute('data-continuity-probe'), 'retained')
+      await frame.getByRole('button', { name: /Pause/ }).first().waitFor()
+      await mini.getByRole('button', { name: 'Restore Music window', exact: true }).click()
       assert.equal(await embed.getAttribute('data-continuity-probe'), 'retained')
       await frame.getByRole('button', { name: /Pause/ }).first().waitFor()
       await frame.getByRole('button', { name: /Pause/ }).first().click()
@@ -38,6 +41,10 @@ async function main() {
       await page.getByRole('textbox', { name: 'Search apps, projects and skills' }).fill('spotify')
       await page.getByRole('option').filter({ hasText: 'Music' }).click()
       await embed.waitFor()
+      if (mobile) await page.getByRole('button', { name: 'Home', exact: true }).click()
+      else await page.locator('[data-app="music"]').getByRole('button', { name: 'Minimize Music', exact: true }).click()
+      await page.getByRole('button', { name: 'Close Music mini player', exact: true }).click()
+      await embed.waitFor({ state: 'detached' })
       console.log(`PASS ${mobile ? 'mobile' : 'desktop'}: Spotify preview controls, retained iframe, restore, retry, external link, close, search and overflow`)
       await page.close()
     }

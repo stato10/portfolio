@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion'
 import { useOSStore } from '../store/useOSStore'
 import AppWindow from './AppWindow'
 import { resolveAppComponent } from './appRegistry'
+import { responsiveWindowBounds } from './windowGeometry'
 
 function AppContent({ windowItem }) {
   const Component = resolveAppComponent(windowItem.appId)
@@ -24,15 +25,8 @@ export default function WindowManager({ activeOnly = false, suspended = false })
   useEffect(() => {
     const keepWindowsInBounds = () => {
       windowsRef.current.forEach((windowItem) => {
-        if (windowItem.maximized) return
-        const width = Math.min(windowItem.bounds.width, window.innerWidth - 24)
-        const height = Math.min(windowItem.bounds.height, window.innerHeight - 132)
-        setWindowBounds(windowItem.id, {
-          width,
-          height,
-          x: Math.min(Math.max(12, windowItem.bounds.x), window.innerWidth - width - 12),
-          y: Math.min(Math.max(44, windowItem.bounds.y), window.innerHeight - 96),
-        })
+        setWindowBounds(windowItem.id, responsiveWindowBounds(windowItem,
+          { width: window.innerWidth, height: window.innerHeight }, windowItem.bounds))
       })
     }
     window.addEventListener('resize', keepWindowsInBounds)

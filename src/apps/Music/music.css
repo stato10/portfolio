@@ -7,6 +7,10 @@
 .music-library-selection > svg { flex: none; color: var(--mac-blue); }
 .music-library-selection small { display: block; margin-top: 3px; font-size: 12px; }
 .music-library > p { margin-top: auto; padding: 28px 9px 0; font-size: 13px; line-height: 1.6; }
+.music-library-note { margin-top: auto; padding: 28px 9px 0; }
+.music-library-note > span { font-size: 12px; font-weight: 600; }
+.music-library-note p { font-size: 12px; line-height: 1.6; }
+.music-eyebrow { display: block; margin-bottom: 10px; color: #a32c49; font-size: 10px; letter-spacing: .13em; font-weight: 700; }
 .music-workspace { min-width: 0; overflow-y: auto; padding: 26px 24px 18px; }
 .music-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 24px; }
 .music-heading h1 { margin: 0 0 7px; font-size: 32px; font-weight: 700; line-height: 1.1; }
@@ -20,6 +24,29 @@
 .music-help p { margin: 0 0 6px; font-size: 13px; }
 .music-help small { display: block; font-size: 12px; line-height: 1.5; }
 .music-help button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 8px; border: 1px solid var(--mac-line); border-radius: 7px; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.music-mini-toolbar { display: none; }
+.music-workspace { background: linear-gradient(160deg, #fff4f5 0, #fff 240px); }
+.music-heading h1 { font-size: 40px; }
+.music-heading a { background: #ffffffb3; }
+.music-embed { border-radius: 12px; box-shadow: 0 8px 24px #89354414; }
+/* Same window and iframe, with a compact layout: no reparenting or playback reset. */
+.os-desktop .app-window.music-mini-window { left: auto !important; top: auto !important; right: 18px; bottom: 96px; width: min(400px, calc(100vw - 24px)) !important; height: auto !important; min-height: 0; min-width: 0; border: 1px solid #ffffffb3; border-radius: 16px; background: #f9f9fbef; box-shadow: 0 16px 48px #18233b30, 0 2px 8px #18233b12; }
+.music-mini-window > .window-titlebar { display: none; }
+.os-desktop .music-mini-window > .window-content { height: auto; overflow: visible; background: transparent; }
+.music-app.is-mini { display: block; height: auto; background: transparent; }
+.music-app.is-mini .music-library, .music-app.is-mini .music-heading, .music-app.is-mini .music-help { display: none; }
+.music-app.is-mini .music-workspace { padding: 0 8px 8px; overflow: visible; background: transparent; }
+.music-app.is-mini .music-mini-toolbar { display: flex; align-items: center; gap: 2px; min-height: 54px; }
+.music-mini-toolbar button { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 9px; background: transparent; cursor: pointer; }
+.music-mini-toolbar button:hover { background: #e5e9f0; }
+.music-mini-toolbar .music-mini-handle { flex: 1; justify-content: flex-start; gap: 10px; width: auto; padding: 0 8px; text-align: left; touch-action: none; user-select: none; cursor: grab; }
+.music-mini-toolbar .music-mini-handle[data-dragging] { cursor: grabbing; }
+.music-mini-handle > svg { color: #c33055; }
+.music-mini-handle span { color: var(--mac-ink); font-size: 13px; font-weight: 650; }
+.music-mini-handle small { display: block; margin-top: 2px; font-size: 10px; font-weight: 400; }
+.music-app.is-mini .music-embed { height: 80px; min-height: 0; box-shadow: none; }
+.music-app.is-mini .music-embed iframe { height: 100%; }
+.music-app.is-mini.show-tracks .music-embed { height: min(352px, calc(100dvh - 236px)); }
 @media (max-width: 760px) {
   .music-app { display: block; overflow-y: auto; }
   .music-library { display: none; }
@@ -28,4 +55,7 @@
   .music-heading a, .music-help button { min-height: 44px; }
   .music-help { flex-direction: column; }
   .music-heading p { font-size: 16px; }
+  .os-desktop .mobile-stage .app-window.music-mini-window { left: 12px !important; top: auto !important; right: 12px; bottom: 12px; width: calc(100% - 24px) !important; height: auto !important; border-radius: 16px; }
+  .music-mini-toolbar button { min-width: 44px; min-height: 44px; }
 }
+.os-desktop .app-window.music-mini-window[data-mini-positioned], .os-desktop .mobile-stage .app-window.music-mini-window[data-mini-positioned] { left: var(--mini-x) !important; top: var(--mini-y) !important; right: auto; bottom: auto; }

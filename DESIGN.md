@@ -122,8 +122,13 @@ Windows minimize toward their own Dock entry in 260ms and restore in 320ms; mobi
 
 Windows and project cards use softly rounded rectangular frames. Controls are tighter, navigation rows slightly rounder, and the glass Dock forms a larger rounded tray. App icons are colorful rounded squares; the profile portrait and traffic-light controls are circles. Fine borders separate surfaces without luminous outlines.
 
+Window sizing follows the content and viewport: desktop app windows target roughly 78% of the available width and 92% of the usable height (capped at 1280×900), while small phone layouts become edge-to-edge app views. Content typography stays at 15px on desktop and 16px on touch layouts, with multi-column surfaces collapsing at container widths rather than stretching tiny text across narrow windows. This preserves the readable, spacious proportions measured in the PouyaOS reference while keeping STATO's bright macOS language.
+
 ## Components
 
+The Music mini-player title is a mouse/touch drag handle; arrow keys move it by 12px (Shift: 40px). Its position survives restore/minimize until Music closes. Resizing the viewport or expanding the song list keeps it within the usable desktop area without remounting Spotify.
+
+- **Music:** A pale rose introduction and quiet library rail frame the unmodified Spotify player. Minimized Music becomes a light 400px floating banner above the Dock (viewport-width minus 24px on mobile), with restore, song-list and close controls. The same iframe remains mounted at 80px compact height or 352px expanded height; Spotify supplies real playback and track controls. The banner remains available while paused. Closing removes the player; previews and account prompts remain controlled by Spotify.
 - **Welcome:** A pale blue/lilac portrait rail and white introduction, primary Projects action, secondary Resume action, compact reel and search shortcut. It is a real dismissible window; Projects and Resume actions close Welcome before opening their destination.
 - **Buttons:** Primary blue with white text; secondary white with a fine gray border. Welcome buttons darken subtly on hover. Light-window links, buttons and inputs use a visible blue 3px focus outline with 2px offset.
 - **Search:** Compact white rounded field with a fine gray border; Spotlight is a larger translucent light system panel with pale-blue active results.
